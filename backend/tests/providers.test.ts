@@ -52,28 +52,30 @@ describe('JSearchProvider', () => {
         ok: true,
         json: () =>
           Promise.resolve({
-            data: [
-              {
-                job_id: 'a1',
-                employer_name: 'Tkxel',
-                job_title: 'Angular Developer',
-                job_apply_link: 'https://www.linkedin.com/jobs/view/123',
-                job_description: 'Build Angular apps',
-                job_city: 'Lahore',
-                job_country: 'Pakistan',
-                job_employment_type: 'FULLTIME',
-                job_publisher: 'LinkedIn',
-              },
-              {
-                job_id: 'b2',
-                employer_name: 'Systems',
-                job_title: 'Frontend Engineer',
-                job_apply_link: 'https://indeed.com/viewjob?jk=456',
-                job_description: 'React role',
-                job_is_remote: true,
-                job_publisher: 'Indeed',
-              },
-            ],
+            data: {
+              jobs: [
+                {
+                  job_id: 'a1',
+                  employer_name: 'Tkxel',
+                  job_title: 'Angular Developer',
+                  job_apply_link: 'https://www.linkedin.com/jobs/view/123',
+                  job_description: 'Build Angular apps',
+                  job_city: 'Lahore',
+                  job_country: 'Pakistan',
+                  job_employment_type: 'FULLTIME',
+                  job_publisher: 'LinkedIn',
+                },
+                {
+                  job_id: 'b2',
+                  employer_name: 'Systems',
+                  job_title: 'Frontend Engineer',
+                  job_apply_link: 'https://indeed.com/viewjob?jk=456',
+                  job_description: 'React role',
+                  job_is_remote: true,
+                  job_publisher: 'Indeed',
+                },
+              ],
+            },
           }),
       }),
     );

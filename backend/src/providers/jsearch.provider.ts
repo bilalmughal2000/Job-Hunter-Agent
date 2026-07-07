@@ -25,7 +25,8 @@ interface JSearchJob {
 }
 
 interface JSearchResponse {
-  data?: JSearchJob[];
+  // /search-v2 nests jobs under data.jobs (with a cursor); tolerate a flat array too.
+  data?: { jobs?: JSearchJob[]; cursor?: string } | JSearchJob[];
 }
 
 const EMPLOYMENT_MAP: Record<string, EmploymentType> = {
@@ -73,7 +74,8 @@ export class JSearchProvider extends BaseProvider {
     const terms = query.keywords.join(' ').trim() || 'frontend developer';
     const location = (query.locations ?? [])[0];
     const q = location ? `${terms} in ${location}` : terms;
-    const url = `https://${this.host}/search?query=${encodeURIComponent(q)}&page=1&num_pages=1`;
+    // /search-v2 parses the location from the query text (e.g. "in Lahore, Pakistan").
+    const url = `https://${this.host}/search-v2?query=${encodeURIComponent(q)}&num_pages=1&date_posted=all`;
 
     const res = await fetch(url, {
       headers: { 'x-rapidapi-key': this.apiKey, 'x-rapidapi-host': this.host },
@@ -90,10 +92,11 @@ export class JSearchProvider extends BaseProvider {
     if (!res.ok) {
       throw new Error(`JSearch request failed: ${res.status} ${res.statusText}`);
     }
-    const data = (await res.json()) as JSearchResponse;
+    const body = (await res.json()) as JSearchResponse;
+    const jobs = Array.isArray(body.data) ? body.data : (body.data?.jobs ?? []);
     const excludes = (query.excludeKeywords ?? []).map((k) => k.toLowerCase());
 
-    return (data.data ?? [])
+    return jobs
       .filter((j) => j.job_title && j.job_apply_link)
       .map((j) => this.normalize(j))
       .filter((j) => {
