@@ -35,6 +35,8 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
+      // Noisy against vi.fn() mocks referenced as `obj.method` in assertions.
+      '@typescript-eslint/unbound-method': 'off',
     },
   },
   prettier,

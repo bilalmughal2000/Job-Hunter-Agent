@@ -1,9 +1,23 @@
 import { DeduplicationAgent } from './agents/dedup/index.js';
 import { SearchAgent } from './agents/search/index.js';
+import {
+  DocxTextExtractor,
+  HeuristicStructuredExtractor,
+  PdfTextExtractor,
+  TesseractOcrExtractor,
+  TextExtractionService,
+  TxtTextExtractor,
+} from './agents/resume-application/extraction/index.js';
 import { buildDefaultRegistry } from './providers/index.js';
-import { CompanyRepository, JobRepository, SearchHistoryRepository } from './repositories/index.js';
-import { JobService, SearchService } from './services/index.js';
-import type { IJobService, ISearchService } from './services/index.js';
+import {
+  CompanyRepository,
+  JobRepository,
+  ResumeRepository,
+  SearchHistoryRepository,
+} from './repositories/index.js';
+import { JobService, LocalStorage, ResumeService, SearchService } from './services/index.js';
+import type { IJobService, IResumeService, ISearchService } from './services/index.js';
+import { env } from './config/index.js';
 import { prisma } from './database/index.js';
 import { InMemoryCache } from './utils/cache.js';
 import { logger } from './utils/logger.js';
@@ -12,6 +26,7 @@ import { logger } from './utils/logger.js';
 export interface AppContainer {
   jobService: IJobService;
   searchService: ISearchService;
+  resumeService: IResumeService;
   /** Resolves a fallback user id until auth exists (Phase 6). */
   resolveDemoUserId: () => Promise<string>;
 }
@@ -34,6 +49,21 @@ export function buildContainer(): AppContainer {
   const jobService = new JobService(jobRepo, companyRepo, dedup);
   const searchService = new SearchService(searchAgent, jobService, searchHistoryRepo, logger);
 
+  // Resume & Application (Phase 4)
+  const resumeRepo = new ResumeRepository(prisma);
+  const textExtraction = new TextExtractionService(
+    [new PdfTextExtractor(), new DocxTextExtractor(), new TxtTextExtractor()],
+    logger,
+    new TesseractOcrExtractor(logger),
+  );
+  const resumeService = new ResumeService(
+    resumeRepo,
+    new LocalStorage(env.UPLOAD_DIR),
+    textExtraction,
+    new HeuristicStructuredExtractor(),
+    logger,
+  );
+
   const resolveDemoUserId = async (): Promise<string> => {
     const user = await prisma.user.findFirst({ orderBy: { createdAt: 'asc' } });
     if (!user) {
@@ -42,5 +72,5 @@ export function buildContainer(): AppContainer {
     return user.id;
   };
 
-  return { jobService, searchService, resolveDemoUserId };
+  return { jobService, searchService, resumeService, resolveDemoUserId };
 }

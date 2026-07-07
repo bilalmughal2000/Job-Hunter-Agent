@@ -3,8 +3,14 @@ import request from 'supertest';
 import type { JobDTO, Paginated, SearchRunSummary } from '@ajh/shared';
 import { createApp } from '../src/app.js';
 import type { AppContainer } from '../src/container.js';
-import type { IJobService, ISearchService } from '../src/services/index.js';
+import type { IJobService, IResumeService, ISearchService } from '../src/services/index.js';
 import { NotFoundError } from '../src/utils/errors.js';
+
+const stubResumeService: IResumeService = {
+  upload: () => Promise.reject(new Error('not used')),
+  getById: () => Promise.reject(new NotFoundError('not used')),
+  getProfile: () => Promise.reject(new NotFoundError('not used')),
+};
 
 const emptyPage: Paginated<JobDTO> = { items: [], page: 1, pageSize: 20, total: 0 };
 
@@ -32,6 +38,7 @@ function appWith(overrides: {
         }),
       ...overrides.search,
     },
+    resumeService: stubResumeService,
     resolveDemoUserId: overrides.resolveDemoUserId ?? (() => Promise.resolve('demo-user')),
   };
   return createApp(container);

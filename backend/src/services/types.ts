@@ -3,6 +3,8 @@ import type {
   JobFilter,
   NormalizedJob,
   Paginated,
+  ResumeDTO,
+  ResumeProfileDTO,
   SearchQuery,
   SearchRunSummary,
 } from '@ajh/shared';
@@ -16,4 +18,18 @@ export interface IJobService {
 
 export interface ISearchService {
   run(userId: string, query: SearchQuery): Promise<SearchRunSummary>;
+}
+
+export interface UploadResumeInput {
+  userId: string;
+  originalName: string;
+  mimeType: string;
+  buffer: Buffer;
+}
+
+export interface IResumeService {
+  /** Store the file, extract text (with OCR fallback), extract + persist the profile. */
+  upload(input: UploadResumeInput): Promise<ResumeDTO>;
+  getById(id: string): Promise<ResumeDTO>;
+  getProfile(resumeId: string): Promise<ResumeProfileDTO>;
 }

@@ -64,3 +64,27 @@ export enum NotificationChannel {
   TELEGRAM = 'TELEGRAM',
   EMAIL = 'EMAIL',
 }
+
+export enum SkillType {
+  TECHNICAL = 'TECHNICAL',
+  SOFT = 'SOFT',
+  GENERAL = 'GENERAL',
+}
+
+export enum ResumeFileFormat {
+  PDF = 'PDF',
+  DOCX = 'DOCX',
+  DOC = 'DOC',
+  TXT = 'TXT',
+  RTF = 'RTF',
+}
+
+/** Lifecycle of a resume's text extraction (mirrors the Prisma enum). */
+export enum ResumeParseStatus {
+  PENDING = 'PENDING',
+  PARSING = 'PARSING',
+  PARSED = 'PARSED',
+  OCR_FALLBACK = 'OCR_FALLBACK',
+  MANUAL_REVIEW = 'MANUAL_REVIEW',
+  FAILED = 'FAILED',
+}

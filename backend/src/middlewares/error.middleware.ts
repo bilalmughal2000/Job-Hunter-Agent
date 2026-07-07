@@ -1,5 +1,6 @@
 import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { ZodError } from 'zod';
+import { MulterError } from 'multer';
 import type { ApiError } from '@ajh/shared';
 import { AppError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
@@ -24,6 +25,16 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
         message: 'Request validation failed',
         details: err.flatten(),
       },
+    };
+    res.status(400).json(body);
+    return;
+  }
+
+  if (err instanceof MulterError) {
+    // e.g. LIMIT_FILE_SIZE, LIMIT_UNEXPECTED_FILE — all client errors.
+    const body: ApiError = {
+      ok: false,
+      error: { code: `UPLOAD_${err.code}`, message: err.message, details: { field: err.field } },
     };
     res.status(400).json(body);
     return;

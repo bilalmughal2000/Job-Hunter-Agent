@@ -29,6 +29,14 @@ const envSchema = z.object({
   EMAIL_USER: z.string().optional(),
   EMAIL_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
+
+  // Resume uploads (Phase 4)
+  UPLOAD_DIR: z.string().default('uploads'),
+  UPLOAD_MAX_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(5 * 1024 * 1024),
 });
 
 const parsed = envSchema.safeParse(process.env);

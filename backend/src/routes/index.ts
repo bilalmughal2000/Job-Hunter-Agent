@@ -3,6 +3,7 @@ import type { AppContainer } from '../container.js';
 import { healthRouter } from './health.routes.js';
 import { createJobRouter } from './job.routes.js';
 import { createSearchRouter } from './search.routes.js';
+import { createResumeRouter } from './resume.routes.js';
 
 /**
  * Root API router. Feature routers are wired from the injected container so
@@ -17,9 +18,12 @@ export function createApiRouter(container: AppContainer): Router {
     '/search',
     createSearchRouter(container.searchService, container.resolveDemoUserId),
   );
+  apiRouter.use(
+    '/resume',
+    createResumeRouter(container.resumeService, container.resolveDemoUserId),
+  );
 
   // Mounted in later phases:
-  // apiRouter.use('/resume', createResumeRouter(...));        // Phase 4
   // apiRouter.use('/applications', createApplicationRouter(...)); // Phase 6
   // apiRouter.use('/analytics', createAnalyticsRouter(...));   // Phase 9
 

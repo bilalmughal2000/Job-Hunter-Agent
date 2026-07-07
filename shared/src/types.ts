@@ -3,6 +3,9 @@ import type {
   EmploymentType,
   JobSource,
   RemoteType,
+  ResumeFileFormat,
+  ResumeParseStatus,
+  SkillType,
   WorkflowStage,
 } from './enums.js';
 
@@ -114,6 +117,109 @@ export interface JobDTO {
   status: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Resume & Application (Phase 4)
+// ─────────────────────────────────────────────────────────────
+
+export interface ExtractedSkill {
+  name: string;
+  type: SkillType;
+  level?: string | null;
+}
+
+export interface ExtractedExperience {
+  company: string;
+  title: string;
+  location?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  isCurrent: boolean;
+  description?: string | null;
+  highlights: string[];
+}
+
+export interface ExtractedProject {
+  name: string;
+  description?: string | null;
+  url?: string | null;
+  technologies: string[];
+}
+
+export interface ExtractedEducation {
+  institution: string;
+  degree?: string | null;
+  fieldOfStudy?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  grade?: string | null;
+}
+
+export interface ExtractedCertification {
+  name: string;
+  issuer?: string | null;
+  issueDate?: string | null;
+  expiryDate?: string | null;
+  credentialId?: string | null;
+  url?: string | null;
+}
+
+export interface ExtractedLanguage {
+  name: string;
+  proficiency?: string | null;
+}
+
+export interface ExtractedAward {
+  title: string;
+  issuer?: string | null;
+  date?: string | null;
+  description?: string | null;
+}
+
+/**
+ * The structured profile produced by a StructuredExtractor from a resume's raw
+ * text. Persisted into ResumeProfile + its normalized child tables.
+ */
+export interface ExtractedProfile {
+  fullName?: string | null;
+  headline?: string | null;
+  summary?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  portfolioUrl?: string | null;
+  githubUrl?: string | null;
+  linkedinUrl?: string | null;
+  websiteUrl?: string | null;
+  skills: ExtractedSkill[];
+  experiences: ExtractedExperience[];
+  projects: ExtractedProject[];
+  educations: ExtractedEducation[];
+  certifications: ExtractedCertification[];
+  languages: ExtractedLanguage[];
+  awards: ExtractedAward[];
+}
+
+/** Resume upload metadata as returned by the API. */
+export interface ResumeDTO {
+  id: string;
+  originalName: string;
+  format: ResumeFileFormat;
+  mimeType: string;
+  sizeBytes: number;
+  parseStatus: ResumeParseStatus;
+  parseError: string | null;
+  isPrimary: boolean;
+  uploadedAt: string;
+  hasProfile: boolean;
+}
+
+/** Full structured profile as returned by `GET /resume/:id/profile`. */
+export interface ResumeProfileDTO extends ExtractedProfile {
+  id: string;
+  resumeId: string;
+  extractedAt: string;
 }
 
 /** Structured output of the AI Matching Agent (Phase 5). */

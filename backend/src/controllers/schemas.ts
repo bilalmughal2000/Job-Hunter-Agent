@@ -46,3 +46,7 @@ export const jobFilterSchema = z.object({
 export const jobIdParamSchema = z.object({
   id: z.string().uuid('Invalid job id'),
 });
+
+export const resumeIdParamSchema = z.object({
+  id: z.string().uuid('Invalid resume id'),
+});

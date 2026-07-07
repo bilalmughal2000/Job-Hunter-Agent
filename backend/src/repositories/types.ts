@@ -1,6 +1,7 @@
-import type { Company, Job } from '@prisma/client';
-import type { JobFilter, JobSource } from '@ajh/shared';
+import type { Company, Job, Resume, ResumeParseStatus } from '@prisma/client';
+import type { ExtractedProfile, JobFilter, JobSource, ResumeFileFormat } from '@ajh/shared';
 import type { JobCreateData } from '../models/job.mapper.js';
+import type { ResumeProfileWithChildren } from '../models/resume.mapper.js';
 
 export type JobWithCompany = Job & { company: Company | null };
 
@@ -31,4 +32,27 @@ export interface RecordSearchInput {
 
 export interface ISearchHistoryRepository {
   record(input: RecordSearchInput): Promise<void>;
+}
+
+// ── Resume & Application (Phase 4) ──────────────────────────────────────────
+
+export interface CreateResumeInput {
+  userId: string;
+  originalName: string;
+  storagePath: string;
+  mimeType: string;
+  format: ResumeFileFormat;
+  sizeBytes: number;
+  checksum: string;
+}
+
+export type ResumeWithProfileFlag = Resume & { profile: { id: string } | null };
+
+export interface IResumeRepository {
+  create(input: CreateResumeInput): Promise<Resume>;
+  setStatus(id: string, status: ResumeParseStatus, error?: string | null): Promise<void>;
+  /** Replace the resume's structured profile (and all children) atomically. */
+  saveProfile(resumeId: string, profile: ExtractedProfile, rawText: string): Promise<void>;
+  findById(id: string): Promise<ResumeWithProfileFlag | null>;
+  findProfileByResumeId(resumeId: string): Promise<ResumeProfileWithChildren | null>;
 }
