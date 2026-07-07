@@ -78,6 +78,15 @@ export class JSearchProvider extends BaseProvider {
     const res = await fetch(url, {
       headers: { 'x-rapidapi-key': this.apiKey, 'x-rapidapi-host': this.host },
     });
+    if (res.status === 404 || res.status === 403) {
+      // Subscription/endpoint misconfig (e.g. no /search on this plan). Don't
+      // sink the whole search run — log and contribute nothing.
+      this.ctx.logger.warn(
+        { status: res.status, host: this.host },
+        'JSearch unavailable (check your RapidAPI subscription exposes GET /search) — skipping',
+      );
+      return [];
+    }
     if (!res.ok) {
       throw new Error(`JSearch request failed: ${res.status} ${res.statusText}`);
     }
