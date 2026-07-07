@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate Prisma client
+        run: npm run prisma:generate --workspace=@ajh/backend
+
       - name: Build shared package
         run: npm run build --workspace=shared
 

@@ -15,8 +15,17 @@ export default defineConfig({
         branches: 60,
         statements: 60,
       },
-      // Bootstrap files (process wiring / port binding) aren't unit-tested.
-      exclude: ['dist/**', 'tests/**', '**/*.config.*', 'src/index.ts', 'src/server.ts'],
+      // Bootstrap / DB-bound files aren't unit-tested (covered by integration
+      // tests against a live Postgres in later phases).
+      exclude: [
+        'dist/**',
+        'tests/**',
+        '**/*.config.*',
+        'src/index.ts',
+        'src/server.ts',
+        'src/database/**',
+        'prisma/**',
+      ],
     },
   },
 });

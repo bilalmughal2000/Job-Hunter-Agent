@@ -12,11 +12,12 @@ COPY shared/package.json ./shared/
 COPY backend/package.json ./backend/
 RUN npm ci --include=dev
 
-# ── build: compile shared + backend to dist ──
+# ── build: generate Prisma client, compile shared + backend to dist ──
 FROM deps AS build
 COPY shared ./shared
 COPY backend ./backend
-RUN npm run build --workspace=shared \
+RUN npm run prisma:generate --workspace=@ajh/backend \
+  && npm run build --workspace=shared \
   && npm run build --workspace=backend
 
 # ── runtime: prod deps only + compiled output ──
@@ -28,6 +29,9 @@ COPY backend/package.json ./backend/
 RUN npm ci --omit=dev
 COPY --from=build /app/shared/dist ./shared/dist
 COPY --from=build /app/backend/dist ./backend/dist
+# Prisma engine + generated client (npm ci can't regenerate without the CLI).
+COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=build /app/backend/prisma ./backend/prisma
 
 USER node
 EXPOSE 3000

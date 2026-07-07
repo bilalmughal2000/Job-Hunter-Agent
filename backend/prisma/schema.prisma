@@ -1,0 +1,624 @@
+// AI Job Hunter — Prisma schema (Phase 2)
+// PostgreSQL. Enums mirror the string enums in @ajh/shared so the API layer
+// and DB stay in lockstep. Designed multi-user from the start (constraint #10).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+// Enums (kept 1:1 with shared/src/enums.ts)
+// ─────────────────────────────────────────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum JobSourceKind {
+  LINKEDIN
+  INDEED
+  ROZEE
+  MUSTAKBIL
+  WELLFOUND
+  GOOGLE_JOBS
+  GREENHOUSE
+  LEVER
+  COMPANY_CAREER
+  MANUAL
+}
+
+enum RemoteType {
+  ON_SITE
+  HYBRID
+  REMOTE
+  UNKNOWN
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  TEMPORARY
+  UNKNOWN
+}
+
+enum JobStatus {
+  NEW
+  ANALYZED
+  MATCHED
+  SAVED
+  ARCHIVED
+  EXPIRED
+}
+
+enum SkillType {
+  TECHNICAL
+  SOFT
+  GENERAL
+}
+
+enum JobSkillRequirement {
+  REQUIRED
+  PREFERRED
+}
+
+enum ResumeFileFormat {
+  PDF
+  DOCX
+  DOC
+  TXT
+  RTF
+}
+
+enum ResumeParseStatus {
+  PENDING
+  PARSING
+  PARSED
+  OCR_FALLBACK
+  MANUAL_REVIEW
+  FAILED
+}
+
+enum WorkflowStage {
+  JOB_FOUND
+  RESUME_MATCHED
+  RESUME_CUSTOMIZED
+  COVER_LETTER_GENERATED
+  PACKAGE_PREPARED
+  READY_FOR_REVIEW
+  USER_APPROVED
+  SUBMITTED
+  TRACKING
+}
+
+enum ApplicationStatus {
+  SAVED
+  READY_FOR_REVIEW
+  SUBMITTED
+  UNDER_REVIEW
+  INTERVIEW_SCHEDULED
+  TECHNICAL_TEST
+  FINAL_INTERVIEW
+  OFFER_RECEIVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum NotificationChannel {
+  TELEGRAM
+  EMAIL
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum SearchTrigger {
+  MANUAL
+  SCHEDULED
+}
+
+// ─────────────────────────────────────────────────────────────
+// Core
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  role         Role     @default(USER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  resumes        Resume[]
+  resumeVersions ResumeVersion[]
+  coverLetters   CoverLetter[]
+  savedJobs      SavedJob[]
+  searchHistory  SearchHistory[]
+  weeklyReports  WeeklyReport[]
+  notifications  Notification[]
+  applications   Application[]
+  matchResults   MatchResult[]
+  preferences    SearchPreference?
+
+  @@index([email])
+}
+
+/// Per-user default search criteria used by the scheduler (Phase 3).
+model SearchPreference {
+  id              String       @id @default(uuid())
+  userId          String       @unique
+  keywords        String[]     @default([])
+  excludeKeywords String[]     @default([])
+  locations       String[]     @default([])
+  remoteTypes     RemoteType[] @default([])
+  minMatchScore   Int?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  name        String
+  website     String?
+  location    String?
+  industry    String?
+  size        String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  jobs Job[]
+
+  // A company is unique by name + location (same brand can hire in many cities).
+  @@unique([name, location])
+  @@index([name])
+}
+
+/// Configured job source with runtime metadata (distinct from the JobSourceKind
+/// enum, which just names the source). Enables per-source enable/disable + cursors.
+model JobSource {
+  id          String        @id @default(uuid())
+  kind        JobSourceKind @unique
+  displayName String
+  enabled     Boolean       @default(true)
+  baseUrl     String?
+  config      Json?
+  lastRunAt   DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Skill {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  type      SkillType @default(TECHNICAL)
+  createdAt DateTime  @default(now())
+
+  jobSkills    JobSkill[]
+  resumeSkills ResumeSkill[]
+
+  @@index([name])
+}
+
+model Job {
+  id             String         @id @default(uuid())
+  title          String
+  companyId      String?
+  location       String
+  country        String
+  salary         String?
+  experience     String?
+  employmentType EmploymentType @default(UNKNOWN)
+  remoteType     RemoteType     @default(UNKNOWN)
+  description    String
+  requirements   String?
+  benefits       String?
+  url            String         @unique
+  source         JobSourceKind
+  externalId     String?
+  postedDate     DateTime?
+  aiSummary      String?
+  // Denormalized "primary user" match snapshot (spec Job Model). Per-user,
+  // per-resume matches live in MatchResult.
+  matchScore     Int?
+  missingSkills  String[]       @default([])
+  status         JobStatus      @default(NEW)
+  // Normalized fingerprint for the Deduplication Agent (Phase 3).
+  dedupHash      String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  company        Company?        @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  jobSkills      JobSkill[]
+  savedBy        SavedJob[]
+  resumeVersions ResumeVersion[]
+  coverLetters   CoverLetter[]
+  applications   Application[]
+  matchResults   MatchResult[]
+  notifications  Notification[]
+
+  @@unique([source, externalId])
+  @@index([source])
+  @@index([status])
+  @@index([postedDate])
+  @@index([country, location])
+  @@index([dedupHash])
+}
+
+/// Structured required/preferred skills extracted from a job (Phase 5 AI).
+model JobSkill {
+  id          String              @id @default(uuid())
+  jobId       String
+  skillId     String
+  requirement JobSkillRequirement @default(REQUIRED)
+
+  job   Job   @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([jobId, skillId])
+  @@index([skillId])
+}
+
+model SavedJob {
+  id        String   @id @default(uuid())
+  userId    String
+  jobId     String
+  note      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@index([userId])
+}
+
+model SearchHistory {
+  id           String         @id @default(uuid())
+  userId       String
+  criteria     Json
+  source       JobSourceKind?
+  resultsCount Int            @default(0)
+  newCount     Int            @default(0)
+  durationMs   Int?
+  triggeredBy  SearchTrigger  @default(MANUAL)
+  error        String?
+  ranAt        DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, ranAt])
+}
+
+model WeeklyReport {
+  id        String   @id @default(uuid())
+  userId    String
+  weekStart DateTime
+  weekEnd   DateTime
+  // Aggregated payload: top companies, demanded skills, avg salary, trends,
+  // interview probability, skill-gap analysis (Phase 9).
+  data      Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart])
+  @@index([userId])
+}
+
+model Notification {
+  id            String              @id @default(uuid())
+  userId        String
+  channel       NotificationChannel
+  status        NotificationStatus  @default(PENDING)
+  subject       String?
+  body          String
+  jobId         String?
+  applicationId String?
+  sentAt        DateTime?
+  error         String?
+  createdAt     DateTime            @default(now())
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job         Job?         @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  application Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@index([userId, status])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Resume & Application
+// ─────────────────────────────────────────────────────────────
+
+/// Raw uploaded resume file + processing metadata.
+model Resume {
+  id           String            @id @default(uuid())
+  userId       String
+  originalName String
+  storagePath  String
+  mimeType     String
+  format       ResumeFileFormat
+  sizeBytes    Int
+  checksum     String?
+  parseStatus  ResumeParseStatus @default(PENDING)
+  parseError   String?
+  isPrimary    Boolean           @default(false)
+  uploadedAt   DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile  ResumeProfile?
+  versions ResumeVersion[]
+
+  @@index([userId])
+}
+
+/// Structured, searchable profile extracted from a Resume (1:1).
+model ResumeProfile {
+  id           String   @id @default(uuid())
+  resumeId     String   @unique
+  fullName     String?
+  headline     String?
+  summary      String?
+  email        String?
+  phone        String?
+  location     String?
+  portfolioUrl String?
+  githubUrl    String?
+  linkedinUrl  String?
+  websiteUrl   String?
+  rawText      String?
+  extractedAt  DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  resume         Resume                @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  skills         ResumeSkill[]
+  experiences    ResumeExperience[]
+  projects       ResumeProject[]
+  educations     ResumeEducation[]
+  certifications ResumeCertification[]
+  languages      ResumeLanguage[]
+  awards         ResumeAward[]
+  matchResults   MatchResult[]
+}
+
+model ResumeSkill {
+  id        String    @id @default(uuid())
+  profileId String
+  name      String
+  type      SkillType @default(TECHNICAL)
+  level     String?
+  skillId   String?
+
+  profile ResumeProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  skill   Skill?        @relation(fields: [skillId], references: [id], onDelete: SetNull)
+
+  @@unique([profileId, name])
+  @@index([profileId])
+}
+
+model ResumeExperience {
+  id          String    @id @default(uuid())
+  profileId   String
+  company     String
+  title       String
+  location    String?
+  startDate   DateTime?
+  endDate     DateTime?
+  isCurrent   Boolean   @default(false)
+  description String?
+  highlights  String[]  @default([])
+  sortOrder   Int       @default(0)
+
+  profile ResumeProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model ResumeProject {
+  id           String   @id @default(uuid())
+  profileId    String
+  name         String
+  description  String?
+  url          String?
+  technologies String[] @default([])
+  sortOrder    Int      @default(0)
+
+  profile ResumeProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model ResumeEducation {
+  id           String    @id @default(uuid())
+  profileId    String
+  institution  String
+  degree       String?
+  fieldOfStudy String?
+  startDate    DateTime?
+  endDate      DateTime?
+  grade        String?
+  sortOrder    Int       @default(0)
+
+  profile ResumeProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model ResumeCertification {
+  id           String    @id @default(uuid())
+  profileId    String
+  name         String
+  issuer       String?
+  issueDate    DateTime?
+  expiryDate   DateTime?
+  credentialId String?
+  url          String?
+  sortOrder    Int       @default(0)
+
+  profile ResumeProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+model ResumeLanguage {
+  id          String  @id @default(uuid())
+  profileId   String
+  name        String
+  proficiency String?
+
+  profile ResumeProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, name])
+  @@index([profileId])
+}
+
+model ResumeAward {
+  id          String    @id @default(uuid())
+  profileId   String
+  title       String
+  issuer      String?
+  date        DateTime?
+  description String?
+  sortOrder   Int       @default(0)
+
+  profile ResumeProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+/// AI Matching Agent output for a (resume profile, job) pair (Phase 5).
+model MatchResult {
+  id              String   @id @default(uuid())
+  userId          String
+  jobId           String
+  resumeProfileId String
+  matchScore      Int
+  explanation     String
+  missingSkills   String[] @default([])
+  strongSkills    String[] @default([])
+  weakSkills      String[] @default([])
+  experienceGap   String?
+  recommendation  String?
+  confidenceScore Float?
+  createdAt       DateTime @default(now())
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job     Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  profile ResumeProfile @relation(fields: [resumeProfileId], references: [id], onDelete: Cascade)
+
+  @@unique([resumeProfileId, jobId])
+  @@index([userId])
+  @@index([jobId])
+}
+
+/// A customized, job-specific resume produced by the Resume Optimizer Agent.
+/// Multiple versions per (base resume, job) are allowed — hence the `version`.
+model ResumeVersion {
+  id           String            @id @default(uuid())
+  userId       String
+  baseResumeId String
+  jobId        String
+  label        String?
+  // Structured customized resume (sections, ordering, emphasized items).
+  content      Json
+  atsScore     Int?
+  storagePath  String?
+  format       ResumeFileFormat?
+  version      Int               @default(1)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  baseResume   Resume        @relation(fields: [baseResumeId], references: [id], onDelete: Cascade)
+  job          Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  coverLetters CoverLetter[]
+  applications Application[]
+
+  @@unique([baseResumeId, jobId, version])
+  @@index([userId])
+  @@index([jobId])
+}
+
+model CoverLetter {
+  id              String   @id @default(uuid())
+  userId          String
+  jobId           String
+  resumeVersionId String
+  content         String
+  tone            String?
+  isEdited        Boolean  @default(false)
+  version         Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job           Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeVersion ResumeVersion @relation(fields: [resumeVersionId], references: [id], onDelete: Cascade)
+  applications  Application[]
+
+  @@index([userId])
+  @@index([jobId])
+  @@index([resumeVersionId])
+}
+
+/// The workflow-managed application. One per (user, job); its history of stage
+/// and status changes lives in ApplicationEvent.
+model Application {
+  id               String            @id @default(uuid())
+  userId           String
+  jobId            String
+  resumeVersionId  String?
+  coverLetterId    String?
+  stage            WorkflowStage     @default(JOB_FOUND)
+  status           ApplicationStatus @default(SAVED)
+  appliedDate      DateTime?
+  interviewDate    DateTime?
+  followUpDate     DateTime?
+  recruiterName    String?
+  recruiterContact String?
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job           Job                @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeVersion ResumeVersion?     @relation(fields: [resumeVersionId], references: [id], onDelete: SetNull)
+  coverLetter   CoverLetter?       @relation(fields: [coverLetterId], references: [id], onDelete: SetNull)
+  events        ApplicationEvent[]
+  notifications Notification[]
+
+  @@unique([userId, jobId])
+  @@index([userId, status])
+  @@index([stage])
+}
+
+/// Append-only audit trail of workflow stage / status transitions (Phase 6).
+model ApplicationEvent {
+  id            String             @id @default(uuid())
+  applicationId String
+  fromStage     WorkflowStage?
+  toStage       WorkflowStage
+  fromStatus    ApplicationStatus?
+  toStatus      ApplicationStatus
+  note          String?
+  createdAt     DateTime           @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId, createdAt])
+}

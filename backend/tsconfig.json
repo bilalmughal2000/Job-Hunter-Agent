@@ -22,5 +22,11 @@
 
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "eslint.config.mjs"]
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts",
+    "prisma/**/*.ts",
+    "prisma.config.ts",
+    "eslint.config.mjs"
+  ]
 }

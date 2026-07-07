@@ -77,7 +77,8 @@ docker compose up --build
 
 The project is built **incrementally, one phase at a time**, each ending in a
 review gate. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full
-table. **Phase 1 (project setup) is complete.**
+table. **Phases 1 (project setup) and 2 (database) are complete** — see
+[`docs/DATABASE.md`](docs/DATABASE.md) for the schema.
 
 ## Compliance & ethics
 
