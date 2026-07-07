@@ -35,6 +35,10 @@ const unusedAi = {
     login: () => Promise.reject(new Error('n/a')),
     me: () => Promise.reject(new Error('n/a')),
   },
+  notificationService: {
+    notify: () => Promise.reject(new Error('n/a')),
+    list: () => Promise.reject(new Error('n/a')),
+  },
 } as unknown as Pick<
   AppContainer,
   | 'jobAnalysisService'
@@ -42,6 +46,7 @@ const unusedAi = {
   | 'applicationDocsService'
   | 'applicationService'
   | 'authService'
+  | 'notificationService'
 >;
 
 function appWith(resumeService: IResumeService) {

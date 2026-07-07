@@ -7,6 +7,7 @@ import { createResumeRouter } from './resume.routes.js';
 import { createCoverLetterRouter, createJobAiRouter, createResumeDocsRouter } from './ai.routes.js';
 import { createAuthRouter } from './auth.routes.js';
 import { createApplicationRouter } from './application.routes.js';
+import { createNotificationRouter } from './notification.routes.js';
 import { attachUser } from '../middlewares/auth.middleware.js';
 
 /**
@@ -47,6 +48,10 @@ export function createApiRouter(container: AppContainer): Router {
   apiRouter.use(
     '/cover-letter',
     createCoverLetterRouter(container.applicationDocsService, container.resolveDemoUserId),
+  );
+  apiRouter.use(
+    '/notifications',
+    createNotificationRouter(container.notificationService, container.jobService),
   );
 
   // apiRouter.use('/analytics', createAnalyticsRouter(...));   // Phase 9

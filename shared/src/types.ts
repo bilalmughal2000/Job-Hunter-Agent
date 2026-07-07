@@ -375,6 +375,25 @@ export interface ApplicationPackageDTO {
   nextStage: WorkflowStage | null;
 }
 
+// ── Notifications (Phase 8) ──────────────────────────────────
+export interface NotificationDTO {
+  id: string;
+  channel: string;
+  status: string;
+  subject: string | null;
+  body: string;
+  jobId: string | null;
+  applicationId: string | null;
+  sentAt: string | null;
+  error: string | null;
+  createdAt: string;
+}
+
+/** Result of a notify() fan-out across channels. */
+export interface NotifyResult {
+  delivered: { channel: string; status: string; error?: string }[];
+}
+
 // ── Auth (Phase 6) ───────────────────────────────────────────
 export interface AuthUserDTO {
   id: string;

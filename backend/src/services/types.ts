@@ -8,6 +8,8 @@ import type {
   JobFilter,
   MatchResult,
   NormalizedJob,
+  NotificationDTO,
+  NotifyResult,
   Paginated,
   ResumeDTO,
   ResumeProfileDTO,
@@ -15,6 +17,7 @@ import type {
   SearchQuery,
   SearchRunSummary,
 } from '@ajh/shared';
+import type { NotificationMessage } from '../agents/notification/index.js';
 
 export interface IJobService {
   list(filter: JobFilter): Promise<Paginated<JobDTO>>;
@@ -70,6 +73,14 @@ export interface UpdateApplicationInput {
   recruiterName?: string | null;
   recruiterContact?: string | null;
   notes?: string | null;
+}
+
+export interface INotificationService {
+  notify(userId: string, message: NotificationMessage): Promise<NotifyResult>;
+  list(
+    userId: string,
+    filter: { page?: number; pageSize?: number },
+  ): Promise<Paginated<NotificationDTO>>;
 }
 
 export interface IApplicationService {

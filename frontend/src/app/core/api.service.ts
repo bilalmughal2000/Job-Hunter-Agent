@@ -12,6 +12,8 @@ import type {
   JobDTO,
   JobFilter,
   MatchResult,
+  NotificationDTO,
+  NotifyResult,
   Paginated,
   ResumeDTO,
   ResumeProfileDTO,
@@ -158,5 +160,16 @@ export class ApiService {
     return this.data(
       this.http.patch<ApiSuccess<ApplicationDTO>>(`${this.base}/applications/${id}`, patch),
     );
+  }
+
+  // ── Notifications ─────────────────────────────────────
+  listNotifications(): Observable<Paginated<NotificationDTO>> {
+    return this.data(
+      this.http.get<ApiSuccess<Paginated<NotificationDTO>>>(`${this.base}/notifications`),
+    );
+  }
+
+  notify(body: { jobId?: string; subject?: string; body?: string }): Observable<NotifyResult> {
+    return this.data(this.http.post<ApiSuccess<NotifyResult>>(`${this.base}/notifications`, body));
   }
 }

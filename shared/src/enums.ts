@@ -63,8 +63,15 @@ export enum ApplicationStatus {
 }
 
 export enum NotificationChannel {
+  IN_APP = 'IN_APP',
   TELEGRAM = 'TELEGRAM',
   EMAIL = 'EMAIL',
+}
+
+export enum NotificationStatus {
+  PENDING = 'PENDING',
+  SENT = 'SENT',
+  FAILED = 'FAILED',
 }
 
 export enum SkillType {

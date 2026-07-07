@@ -121,3 +121,20 @@ export const applicationsFilterSchema = z.object({
   page: z.coerce.number().int().positive().optional(),
   pageSize: z.coerce.number().int().positive().max(100).optional(),
 });
+
+// ── Notifications (Phase 8) ──────────────────────────────────
+export const notifySchema = z
+  .object({
+    // Either send a formatted alert for a job, or a plain test message.
+    jobId: z.string().uuid().optional(),
+    subject: z.string().max(200).optional(),
+    body: z.string().max(5000).optional(),
+  })
+  .refine((v) => v.jobId || v.body || v.subject === undefined, {
+    message: 'Provide a jobId, or a subject/body, or nothing for a test notification',
+  });
+
+export const paginationQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(100).optional(),
+});

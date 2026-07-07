@@ -102,6 +102,7 @@ export class ShellComponent {
     { path: '/resume', label: 'Resume Manager', icon: 'description' },
     { path: '/applications', label: 'Applications', icon: 'assignment_turned_in' },
     { path: '/analytics', label: 'Analytics', icon: 'insights' },
+    { path: '/notifications', label: 'Notifications', icon: 'notifications' },
     { path: '/settings', label: 'Settings', icon: 'settings' },
   ];
 

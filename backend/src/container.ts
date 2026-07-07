@@ -16,6 +16,7 @@ import { HeuristicResumeOptimizer, LlmResumeOptimizer } from './agents/resume-op
 import type { ResumeOptimizerAgent } from './agents/resume-optimizer/index.js';
 import { LlmCoverLetterAgent, TemplateCoverLetterAgent } from './agents/cover-letter/index.js';
 import type { CoverLetterAgent } from './agents/cover-letter/index.js';
+import { EmailChannel, InAppChannel, TelegramChannel } from './agents/notification/index.js';
 import { OpenAiCompatibleClient } from './ai/index.js';
 import { buildDefaultRegistry } from './providers/index.js';
 import {
@@ -24,6 +25,7 @@ import {
   CoverLetterRepository,
   JobRepository,
   MatchResultRepository,
+  NotificationRepository,
   ResumeRepository,
   ResumeVersionRepository,
   SearchHistoryRepository,
@@ -37,6 +39,7 @@ import {
   JobService,
   LocalStorage,
   MatchingService,
+  NotificationService,
   ResumeService,
   SearchService,
 } from './services/index.js';
@@ -47,6 +50,7 @@ import type {
   IJobAnalysisService,
   IJobService,
   IMatchingService,
+  INotificationService,
   IResumeService,
   ISearchService,
 } from './services/index.js';
@@ -104,6 +108,7 @@ export interface AppContainer {
   matchingService: IMatchingService;
   applicationDocsService: IApplicationDocsService;
   applicationService: IApplicationService;
+  notificationService: INotificationService;
   authService: IAuthService;
   /** Resolves a fallback user id for pre-auth endpoints (prefers the JWT user). */
   resolveDemoUserId: () => Promise<string>;
@@ -175,6 +180,24 @@ export function buildContainer(): AppContainer {
   const applicationRepo = new ApplicationRepository(prisma);
   const applicationService = new ApplicationService(applicationRepo, jobRepo, resumeRepo);
 
+  // Notifications (Phase 8): in-app always on; Telegram/email if configured.
+  const notificationService = new NotificationService(
+    [
+      new InAppChannel(),
+      new TelegramChannel({ token: env.TELEGRAM_TOKEN, defaultChatId: env.TELEGRAM_CHAT_ID }),
+      new EmailChannel({
+        host: env.EMAIL_HOST,
+        port: env.EMAIL_PORT,
+        user: env.EMAIL_USER,
+        password: env.EMAIL_PASSWORD,
+        from: env.EMAIL_FROM,
+      }),
+    ],
+    new NotificationRepository(prisma),
+    userRepo,
+    logger,
+  );
+
   const resolveDemoUserId = async (): Promise<string> => {
     const user = await prisma.user.findFirst({ orderBy: { createdAt: 'asc' } });
     if (!user) {
@@ -191,6 +214,7 @@ export function buildContainer(): AppContainer {
     matchingService,
     applicationDocsService,
     applicationService,
+    notificationService,
     authService,
     resolveDemoUserId,
   };

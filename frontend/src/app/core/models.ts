@@ -221,6 +221,23 @@ export interface ApplicationPackageDTO {
   nextStage: WorkflowStage | null;
 }
 
+export interface NotificationDTO {
+  id: string;
+  channel: string;
+  status: string;
+  subject: string | null;
+  body: string;
+  jobId: string | null;
+  applicationId: string | null;
+  sentAt: string | null;
+  error: string | null;
+  createdAt: string;
+}
+
+export interface NotifyResult {
+  delivered: { channel: string; status: string; error?: string }[];
+}
+
 export interface AuthUser {
   id: string;
   email: string;

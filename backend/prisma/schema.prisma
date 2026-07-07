@@ -114,6 +114,7 @@ enum ApplicationStatus {
 }
 
 enum NotificationChannel {
+  IN_APP
   TELEGRAM
   EMAIL
 }

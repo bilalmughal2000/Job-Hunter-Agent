@@ -7,6 +7,11 @@ export { ResumeVersionRepository } from './resumeVersion.repository.js';
 export { CoverLetterRepository } from './coverLetter.repository.js';
 export { ApplicationRepository } from './application.repository.js';
 export { UserRepository } from './user.repository.js';
+export { NotificationRepository } from './notification.repository.js';
+export type {
+  INotificationRepository,
+  CreateNotificationInput,
+} from './notification.repository.js';
 export type {
   IApplicationRepository,
   ApplicationWithRelations,
