@@ -1,0 +1,30 @@
+{
+  "name": "ai-job-hunter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI Job Hunter Agent — finds, scores, and manages Frontend Angular job applications end-to-end.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11.0",
+    "npm": ">=10.0.0"
+  },
+  "workspaces": [
+    "shared",
+    "backend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=shared && npm run build --workspace=backend",
+    "dev": "npm run dev --workspace=backend",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,js,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md,yml,yaml}\"",
+    "test": "npm run test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "prepare": "node -e \"process.exit(0)\""
+  },
+  "devDependencies": {
+    "prettier": "^3.4.2"
+  }
+}

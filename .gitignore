@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pino.log
+
+# Test / coverage
+coverage/
+.nyc_output/
+
+# Prisma (generated later, Phase 2)
+backend/prisma/*.db
+
+# Uploads (resume files, Phase 4)
+uploads/
+tmp/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Angular (Phase 7)
+frontend/.angular/
+frontend/dist/
