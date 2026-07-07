@@ -75,7 +75,7 @@ Every endpoint returns a typed envelope (`ApiResponse<T>` from `@ajh/shared`):
 | 4 ✅  | Resume & Application agent: upload, parse/OCR, structured profile              |
 | 5 ✅  | AI agents: matching, resume optimizer, cover letter, job analysis              |
 | 6 ✅  | Application workflow state machine + approval gates + tracking APIs + JWT auth |
-| 7     | Angular dashboard: pages, filters, board, analytics viz                        |
+| 7 ✅  | Angular dashboard: pages, filters, board, analytics viz                        |
 | 8     | Notifications: Telegram + email                                                |
 | 9     | Analytics & reporting, career assistant outputs                                |
 | 10    | Deployment: compose, deploy guides, CI/CD                                      |
