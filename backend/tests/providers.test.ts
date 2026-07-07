@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { JobSource, RemoteType } from '@ajh/shared';
-import { buildDefaultRegistry, SampleProvider } from '../src/providers/index.js';
+import { buildDefaultRegistry, RemoteOkProvider, SampleProvider } from '../src/providers/index.js';
 import { InMemoryCache } from '../src/utils/cache.js';
 import { logger } from '../src/utils/logger.js';
 
@@ -10,8 +10,9 @@ describe('buildDefaultRegistry', () => {
   it('enables the real Remotive provider and disables gated stubs by default', () => {
     const registry = buildDefaultRegistry(ctx());
     const available = registry.available().map((p) => p.source);
-    // Remotive (real, key-less) is enabled; sample fixtures are NOT by default.
+    // Real key-less sources are enabled; sample fixtures are NOT by default.
     expect(available).toContain(JobSource.REMOTIVE);
+    expect(available).toContain(JobSource.REMOTEOK);
     expect(available).not.toContain(JobSource.MANUAL);
     // Gated sources are registered but disabled until a compliant integration.
     expect(registry.get(JobSource.LINKEDIN)?.isAvailable()).toBe(false);
@@ -27,6 +28,69 @@ describe('buildDefaultRegistry', () => {
     const registry = buildDefaultRegistry(ctx());
     expect(registry.available([JobSource.LINKEDIN])).toHaveLength(0);
     expect(registry.available([JobSource.REMOTIVE])).toHaveLength(1);
+  });
+});
+
+describe('RemoteOkProvider', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const feed = [
+    { legal: 'RemoteOK legal notice' },
+    {
+      id: 1,
+      company: 'Acme',
+      position: 'Senior Angular Developer',
+      tags: ['angular', 'typescript'],
+      description: '<p>Build <b>Angular</b> apps</p>',
+      location: 'Worldwide',
+      salary_min: 60000,
+      salary_max: 90000,
+      url: 'https://remoteok.com/remote-jobs/1-senior-angular',
+      date: '2026-07-01',
+    },
+    {
+      id: 2,
+      company: 'Beta',
+      position: 'Rust Engineer',
+      tags: ['rust'],
+      description: '<p>Systems programming in Rust</p>',
+      url: 'https://remoteok.com/remote-jobs/2-rust',
+    },
+  ];
+
+  function stubFetch(): void {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve(feed) }),
+    );
+  }
+
+  it('drops the legal notice, strips HTML, and maps fields', async () => {
+    stubFetch();
+    const jobs = await new RemoteOkProvider(ctx()).search({ keywords: [] });
+    expect(jobs).toHaveLength(2);
+    const angular = jobs.find((j) => j.title.includes('Angular'));
+    expect(angular?.company).toBe('Acme');
+    expect(angular?.remoteType).toBe(RemoteType.REMOTE);
+    expect(angular?.description).toContain('Build Angular apps');
+    expect(angular?.description).not.toContain('<');
+    expect(angular?.salary).toBe('$60000 - $90000');
+    expect(angular?.url).toContain('remoteok.com');
+  });
+
+  it('filters by keyword relevance', async () => {
+    stubFetch();
+    const jobs = await new RemoteOkProvider(ctx()).search({ keywords: ['angular'] });
+    expect(jobs).toHaveLength(1);
+    expect(jobs[0]?.title).toContain('Angular');
+  });
+
+  it('throws on a non-ok response (so BaseProvider can isolate it)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: false, status: 503, statusText: 'Service Unavailable' }),
+    );
+    await expect(new RemoteOkProvider(ctx()).search({ keywords: [] })).rejects.toThrow(/RemoteOK/);
   });
 });
 

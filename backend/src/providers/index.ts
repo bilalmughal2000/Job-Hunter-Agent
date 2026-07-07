@@ -2,6 +2,7 @@ import { JobSource } from '@ajh/shared';
 import { ProviderRegistry } from './registry.js';
 import { SampleProvider } from './sample.provider.js';
 import { RemotiveProvider } from './remotive.provider.js';
+import { RemoteOkProvider } from './remoteok.provider.js';
 import { CompliantStubProvider } from './stub.provider.js';
 import type { ProviderContext } from './types.js';
 
@@ -9,6 +10,7 @@ export { ProviderRegistry } from './registry.js';
 export { BaseProvider } from './base.provider.js';
 export { SampleProvider } from './sample.provider.js';
 export { RemotiveProvider } from './remotive.provider.js';
+export { RemoteOkProvider } from './remoteok.provider.js';
 export { CompliantStubProvider } from './stub.provider.js';
 export type { JobSourceProvider, ProviderContext } from './types.js';
 
@@ -40,6 +42,7 @@ export function buildDefaultRegistry(
 ): ProviderRegistry {
   const registry = new ProviderRegistry();
   registry.register(new RemotiveProvider(ctx));
+  registry.register(new RemoteOkProvider(ctx));
   if (options.includeSample) registry.register(new SampleProvider(ctx));
   for (const cfg of COMPLIANT_SOURCES) {
     registry.register(new CompliantStubProvider(ctx, cfg));

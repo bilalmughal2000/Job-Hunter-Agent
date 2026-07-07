@@ -31,6 +31,7 @@ const JOB_SOURCES: { kind: JobSourceKind; displayName: string; baseUrl?: string 
   { kind: JobSourceKind.LEVER, displayName: 'Lever' },
   { kind: JobSourceKind.COMPANY_CAREER, displayName: 'Company Career Pages' },
   { kind: JobSourceKind.REMOTIVE, displayName: 'Remotive (live remote jobs)' },
+  { kind: JobSourceKind.REMOTEOK, displayName: 'RemoteOK (live remote jobs)' },
   { kind: JobSourceKind.MANUAL, displayName: 'Manual Entry' },
 ];
 

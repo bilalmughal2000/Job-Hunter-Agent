@@ -15,6 +15,7 @@ export enum JobSource {
   LEVER = 'LEVER',
   COMPANY_CAREER = 'COMPANY_CAREER',
   REMOTIVE = 'REMOTIVE',
+  REMOTEOK = 'REMOTEOK',
   MANUAL = 'MANUAL',
 }
 
