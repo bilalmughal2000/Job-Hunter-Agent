@@ -1,4 +1,5 @@
 import { Component, type OnInit, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,7 +11,7 @@ import type { ApplicationDTO, ApplicationStatus } from '../../core/models';
 
 @Component({
   selector: 'app-applications',
-  imports: [MatCardModule, MatButtonModule, MatIconModule, MatMenuModule],
+  imports: [RouterLink, MatCardModule, MatButtonModule, MatIconModule, MatMenuModule],
   template: `
     <div class="page">
       <h1>Applications</h1>
@@ -26,7 +27,9 @@ import type { ApplicationDTO, ApplicationStatus } from '../../core/models';
             </div>
             @for (a of byStage(stage); track a.id) {
               <mat-card class="card">
-                <strong>{{ a.jobTitle }}</strong>
+                <a [routerLink]="['/applications', a.id]"
+                  ><strong>{{ a.jobTitle }}</strong></a
+                >
                 <div class="muted">{{ a.company }}</div>
                 <span
                   class="chip"
@@ -35,6 +38,9 @@ import type { ApplicationDTO, ApplicationStatus } from '../../core/models';
                   >{{ a.status }}</span
                 >
                 <div class="actions">
+                  <a mat-icon-button title="Review / apply" [routerLink]="['/applications', a.id]">
+                    <mat-icon>open_in_full</mat-icon>
+                  </a>
                   <button mat-icon-button title="Advance stage" (click)="advance(a)">
                     <mat-icon>arrow_forward</mat-icon>
                   </button>

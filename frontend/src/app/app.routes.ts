@@ -40,6 +40,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'applications/:id',
+        loadComponent: () =>
+          import('./pages/application-detail/application-detail.component').then(
+            (m) => m.ApplicationDetailComponent,
+          ),
+      },
+      {
         path: 'analytics',
         loadComponent: () =>
           import('./pages/analytics/analytics.component').then((m) => m.AnalyticsComponent),

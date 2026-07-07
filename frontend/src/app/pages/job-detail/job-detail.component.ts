@@ -44,7 +44,14 @@ import type {
           <button mat-stroked-button (click)="createApplication(j.id)">
             <mat-icon>add</mat-icon> Track application
           </button>
+          <a mat-flat-button color="accent" [href]="j.url" target="_blank" rel="noopener">
+            <mat-icon>open_in_new</mat-icon> Apply on site
+          </a>
         </div>
+        <p class="muted" style="margin-top:-4px">
+          Tip: “Apply on site” opens the real posting to submit there, then track it under
+          <strong>Applications</strong>. This app never auto-submits on your behalf.
+        </p>
 
         <div class="row">
           <mat-card class="col">
