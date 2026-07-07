@@ -1,7 +1,9 @@
 import type {
+  AnalyticsDTO,
   ApplicationDTO,
   ApplicationPackageDTO,
   ApplicationStatus,
+  CareerAssistantDTO,
   CoverLetterDTO,
   JobAnalysis,
   JobDTO,
@@ -16,6 +18,8 @@ import type {
   ResumeVersionDTO,
   SearchQuery,
   SearchRunSummary,
+  SkillDemandDTO,
+  WeeklyReportDTO,
 } from '@ajh/shared';
 import type { NotificationMessage } from '../agents/notification/index.js';
 
@@ -73,6 +77,17 @@ export interface UpdateApplicationInput {
   recruiterName?: string | null;
   recruiterContact?: string | null;
   notes?: string | null;
+}
+
+export interface IAnalyticsService {
+  getAnalytics(userId: string): Promise<AnalyticsDTO>;
+  listSkills(): Promise<SkillDemandDTO[]>;
+  generateWeeklyReport(userId: string): Promise<WeeklyReportDTO>;
+  listReports(userId: string): Promise<WeeklyReportDTO[]>;
+}
+
+export interface ICareerAssistantService {
+  assist(userId: string, jobId: string): Promise<CareerAssistantDTO>;
 }
 
 export interface INotificationService {

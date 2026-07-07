@@ -77,7 +77,7 @@ Every endpoint returns a typed envelope (`ApiResponse<T>` from `@ajh/shared`):
 | 6 ✅  | Application workflow state machine + approval gates + tracking APIs + JWT auth |
 | 7 ✅  | Angular dashboard: pages, filters, board, analytics viz                        |
 | 8 ✅  | Notifications: Telegram + email (+ in-app feed)                                |
-| 9     | Analytics & reporting, career assistant outputs                                |
+| 9 ✅  | Analytics & reporting, career assistant, node-cron scheduler                   |
 | 10 ✅ | Deployment: compose, Render blueprint, deploy guides, CI/CD                    |
 
 ## Compliance note

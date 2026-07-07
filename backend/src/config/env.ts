@@ -50,6 +50,14 @@ const envSchema = z.object({
     .int()
     .positive()
     .default(5 * 1024 * 1024),
+
+  // Scheduler (Phase 9) — off by default (avoids running in dev/tests/CI).
+  ENABLE_SCHEDULER: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((v) => v === 'true'),
+  SEARCH_CRON: z.string().default('0 */4 * * *'), // every 4 hours
+  WEEKLY_REPORT_CRON: z.string().default('0 8 * * 1'), // Mondays 08:00
 });
 
 const parsed = envSchema.safeParse(process.env);

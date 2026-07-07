@@ -13,7 +13,8 @@ const schema = z.object({
   salary: z.string().nullish(),
 });
 
-const SYSTEM = `You analyze job postings. Return strict JSON with keys: summary (2-3 sentences), requiredSkills (string[]), preferredSkills (string[]), responsibilities (string[]), benefits (string[]), salary (string or null). Extract only what the posting states.`;
+const SYSTEM = `You analyze job postings. Return strict JSON with keys: summary (2-3 sentences), requiredSkills (string[]), preferredSkills (string[]), responsibilities (string[]), benefits (string[]), salary (string or null).
+requiredSkills/preferredSkills must be CONCRETE technologies, tools, languages, or frameworks only (e.g. "Angular", "TypeScript", "AWS", "PostgreSQL") — each 1-3 words. Do NOT include soft skills, attitudes, equipment, or full sentences. Extract only what the posting states.`;
 
 export class LlmJobAnalysisAgent implements JobAnalysisAgent {
   readonly name = 'llm-job-analysis';
@@ -33,6 +34,15 @@ export class LlmJobAnalysisAgent implements JobAnalysisAgent {
       ],
     });
     const parsed = parseAiJson(raw, schema);
-    return { ...parsed, salary: parsed.salary ?? input.salary };
+    // Defensive: keep only skill-like tokens (short, ≤4 words) so soft
+    // requirements/sentences don't pollute the skills dictionary + analytics.
+    const clean = (skills: string[]): string[] =>
+      skills.filter((s) => s.length <= 30 && s.trim().split(/\s+/).length <= 4);
+    return {
+      ...parsed,
+      requiredSkills: clean(parsed.requiredSkills),
+      preferredSkills: clean(parsed.preferredSkills),
+      salary: parsed.salary ?? input.salary,
+    };
   }
 }

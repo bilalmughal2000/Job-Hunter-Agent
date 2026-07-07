@@ -85,15 +85,19 @@ docker compose up --build
 
 The project is built **incrementally, one phase at a time**, each ending in a
 review gate. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full
-table. **Phases 1–8 are complete**: project setup, database
+table. **Phases 1–10 are complete**: project setup, database
 ([`docs/DATABASE.md`](docs/DATABASE.md)), search + deduplication
 ([`docs/SEARCH.md`](docs/SEARCH.md)), the resume & application agent
 ([`docs/RESUME.md`](docs/RESUME.md)), the AI agents — matching, resume
 optimizer, cover letter, job analysis ([`docs/AI-AGENTS.md`](docs/AI-AGENTS.md)),
 the application workflow + JWT auth
 ([`docs/WORKFLOW-AUTH.md`](docs/WORKFLOW-AUTH.md)), the Angular dashboard
-([`docs/FRONTEND.md`](docs/FRONTEND.md)), and notifications — Telegram/email +
-in-app feed ([`docs/NOTIFICATIONS.md`](docs/NOTIFICATIONS.md)).
+([`docs/FRONTEND.md`](docs/FRONTEND.md)), notifications — Telegram/email +
+in-app feed ([`docs/NOTIFICATIONS.md`](docs/NOTIFICATIONS.md)), analytics +
+career assistant + scheduler ([`docs/ANALYTICS-SCHEDULER.md`](docs/ANALYTICS-SCHEDULER.md)),
+and free deployment ([`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)).
+
+**All 10 phases are complete.**
 
 > **AI works with no paid key.** It defaults to an offline heuristic backend;
 > set `AI_PROVIDER=openai-compatible` with a free Groq/Gemini key (or local

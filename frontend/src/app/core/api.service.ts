@@ -11,6 +11,8 @@ import type {
   JobAnalysis,
   JobDTO,
   JobFilter,
+  AnalyticsDTO,
+  CareerAssistantDTO,
   MatchResult,
   NotificationDTO,
   NotifyResult,
@@ -171,5 +173,16 @@ export class ApiService {
 
   notify(body: { jobId?: string; subject?: string; body?: string }): Observable<NotifyResult> {
     return this.data(this.http.post<ApiSuccess<NotifyResult>>(`${this.base}/notifications`, body));
+  }
+
+  // ── Analytics & career assistant ──────────────────────
+  getAnalytics(): Observable<AnalyticsDTO> {
+    return this.data(this.http.get<ApiSuccess<AnalyticsDTO>>(`${this.base}/analytics`));
+  }
+
+  careerAssistant(jobId: string): Observable<CareerAssistantDTO> {
+    return this.data(
+      this.http.get<ApiSuccess<CareerAssistantDTO>>(`${this.base}/jobs/${jobId}/assistant`),
+    );
   }
 }

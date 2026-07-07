@@ -375,6 +375,68 @@ export interface ApplicationPackageDTO {
   nextStage: WorkflowStage | null;
 }
 
+// ── Analytics & Career Assistant (Phase 9) ──────────────────
+export interface CountItem {
+  label: string;
+  count: number;
+}
+
+export interface AnalyticsDTO {
+  totalJobs: number;
+  jobsBySource: CountItem[];
+  topCompanies: CountItem[];
+  mostDemandedSkills: CountItem[];
+  averageSalary: string | null;
+  /** New jobs per day for the last 14 days. */
+  hiringTrend: { date: string; count: number }[];
+  applications: {
+    total: number;
+    byStatus: CountItem[];
+    submitted: number;
+    interviews: number;
+    offers: number;
+    rejections: number;
+    successRate: number;
+  };
+  /** Missing skills aggregated across the user's matched jobs. */
+  skillGaps: CountItem[];
+}
+
+export interface SkillDemandDTO {
+  name: string;
+  type: string;
+  demand: number;
+}
+
+export interface WeeklyReportDTO {
+  id: string;
+  weekStart: string;
+  weekEnd: string;
+  data: {
+    topCompanies: CountItem[];
+    mostDemandedSkills: CountItem[];
+    averageSalary: string | null;
+    newJobs: number;
+    applications: number;
+    interviewProbability: number;
+    skillGaps: CountItem[];
+  };
+  createdAt: string;
+}
+
+/** AI Career Assistant output for a job × the user's resume (spec §AI Career Assistant). */
+export interface CareerAssistantDTO {
+  interviewProbability: number;
+  atsScore: number;
+  resumeSuggestions: string[];
+  missingSkills: string[];
+  learningResources: { skill: string; resource: string; url: string }[];
+  expectedSalaryRange: string;
+  interviewQuestions: string[];
+  companySummary: string;
+  similarJobs: { id: string; title: string; company: string | null }[];
+}
+
 // ── Notifications (Phase 8) ──────────────────────────────────
 export interface NotificationDTO {
   id: string;

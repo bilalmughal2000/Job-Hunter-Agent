@@ -16,6 +16,8 @@ import { HeuristicResumeOptimizer, LlmResumeOptimizer } from './agents/resume-op
 import type { ResumeOptimizerAgent } from './agents/resume-optimizer/index.js';
 import { LlmCoverLetterAgent, TemplateCoverLetterAgent } from './agents/cover-letter/index.js';
 import type { CoverLetterAgent } from './agents/cover-letter/index.js';
+import { HeuristicCareerAssistant, LlmCareerAssistant } from './agents/career-assistant/index.js';
+import type { CareerAssistantAgent } from './agents/career-assistant/index.js';
 import { EmailChannel, InAppChannel, TelegramChannel } from './agents/notification/index.js';
 import { OpenAiCompatibleClient } from './ai/index.js';
 import { buildDefaultRegistry } from './providers/index.js';
@@ -32,9 +34,11 @@ import {
   UserRepository,
 } from './repositories/index.js';
 import {
+  AnalyticsService,
   ApplicationDocsService,
   ApplicationService,
   AuthService,
+  CareerAssistantService,
   JobAnalysisService,
   JobService,
   LocalStorage,
@@ -44,9 +48,11 @@ import {
   SearchService,
 } from './services/index.js';
 import type {
+  IAnalyticsService,
   IApplicationDocsService,
   IApplicationService,
   IAuthService,
+  ICareerAssistantService,
   IJobAnalysisService,
   IJobService,
   IMatchingService,
@@ -54,6 +60,7 @@ import type {
   IResumeService,
   ISearchService,
 } from './services/index.js';
+import { SchedulerService } from './scheduler/scheduler.service.js';
 import { env } from './config/index.js';
 import { prisma } from './database/index.js';
 import { InMemoryCache } from './utils/cache.js';
@@ -64,6 +71,7 @@ interface AiAgents {
   jobAnalysis: JobAnalysisAgent;
   optimizer: ResumeOptimizerAgent;
   coverLetter: CoverLetterAgent;
+  assistant: CareerAssistantAgent;
 }
 
 /**
@@ -88,6 +96,7 @@ function buildAiAgents(): AiAgents {
       jobAnalysis: new LlmJobAnalysisAgent(client),
       optimizer: new LlmResumeOptimizer(client),
       coverLetter: new LlmCoverLetterAgent(client),
+      assistant: new LlmCareerAssistant(client),
     };
   }
   logger.info('AI agents: heuristic backend (no API key configured)');
@@ -96,6 +105,7 @@ function buildAiAgents(): AiAgents {
     jobAnalysis: new HeuristicJobAnalysisAgent(),
     optimizer: new HeuristicResumeOptimizer(),
     coverLetter: new TemplateCoverLetterAgent(),
+    assistant: new HeuristicCareerAssistant(),
   };
 }
 
@@ -109,6 +119,9 @@ export interface AppContainer {
   applicationDocsService: IApplicationDocsService;
   applicationService: IApplicationService;
   notificationService: INotificationService;
+  analyticsService: IAnalyticsService;
+  careerAssistantService: ICareerAssistantService;
+  scheduler: SchedulerService;
   authService: IAuthService;
   /** Resolves a fallback user id for pre-auth endpoints (prefers the JWT user). */
   resolveDemoUserId: () => Promise<string>;
@@ -198,6 +211,23 @@ export function buildContainer(): AppContainer {
     logger,
   );
 
+  // Analytics, career assistant, scheduler (Phase 9)
+  const analyticsService = new AnalyticsService(prisma);
+  const careerAssistantService = new CareerAssistantService(
+    agents.matching,
+    agents.jobAnalysis,
+    agents.assistant,
+    jobRepo,
+    resumeRepo,
+  );
+  const scheduler = new SchedulerService(
+    prisma,
+    searchService,
+    notificationService,
+    analyticsService,
+    logger,
+  );
+
   const resolveDemoUserId = async (): Promise<string> => {
     const user = await prisma.user.findFirst({ orderBy: { createdAt: 'asc' } });
     if (!user) {
@@ -215,6 +245,9 @@ export function buildContainer(): AppContainer {
     applicationDocsService,
     applicationService,
     notificationService,
+    analyticsService,
+    careerAssistantService,
+    scheduler,
     authService,
     resolveDemoUserId,
   };

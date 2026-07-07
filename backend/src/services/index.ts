@@ -6,6 +6,8 @@ export { MatchingService } from './matching.service.js';
 export { ApplicationDocsService } from './applicationDocs.service.js';
 export { ApplicationService } from './application.service.js';
 export { NotificationService } from './notification.service.js';
+export { AnalyticsService } from './analytics.service.js';
+export { CareerAssistantService } from './careerAssistant.service.js';
 export { AuthService } from './auth.service.js';
 export type { IAuthService } from './auth.service.js';
 export { LocalStorage } from './storage.service.js';
@@ -19,6 +21,8 @@ export type {
   IApplicationDocsService,
   IApplicationService,
   INotificationService,
+  IAnalyticsService,
+  ICareerAssistantService,
   UpdateApplicationInput,
   UploadResumeInput,
 } from './types.js';

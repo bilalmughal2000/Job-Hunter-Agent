@@ -39,6 +39,18 @@ const unusedAi = {
     notify: () => Promise.reject(new Error('n/a')),
     list: () => Promise.reject(new Error('n/a')),
   },
+  analyticsService: {
+    getAnalytics: () => Promise.reject(new Error('n/a')),
+    listSkills: () => Promise.reject(new Error('n/a')),
+    generateWeeklyReport: () => Promise.reject(new Error('n/a')),
+    listReports: () => Promise.reject(new Error('n/a')),
+  },
+  careerAssistantService: { assist: () => Promise.reject(new Error('n/a')) },
+  scheduler: {
+    runTask: () => Promise.reject(new Error('n/a')),
+    start: () => undefined,
+    stop: () => undefined,
+  },
 } as unknown as Pick<
   AppContainer,
   | 'jobAnalysisService'
@@ -47,6 +59,9 @@ const unusedAi = {
   | 'applicationService'
   | 'authService'
   | 'notificationService'
+  | 'analyticsService'
+  | 'careerAssistantService'
+  | 'scheduler'
 >;
 
 function appWith(resumeService: IResumeService) {

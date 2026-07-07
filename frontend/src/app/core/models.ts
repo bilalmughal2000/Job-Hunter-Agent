@@ -221,6 +221,40 @@ export interface ApplicationPackageDTO {
   nextStage: WorkflowStage | null;
 }
 
+export interface CountItem {
+  label: string;
+  count: number;
+}
+export interface AnalyticsDTO {
+  totalJobs: number;
+  jobsBySource: CountItem[];
+  topCompanies: CountItem[];
+  mostDemandedSkills: CountItem[];
+  averageSalary: string | null;
+  hiringTrend: { date: string; count: number }[];
+  applications: {
+    total: number;
+    byStatus: CountItem[];
+    submitted: number;
+    interviews: number;
+    offers: number;
+    rejections: number;
+    successRate: number;
+  };
+  skillGaps: CountItem[];
+}
+export interface CareerAssistantDTO {
+  interviewProbability: number;
+  atsScore: number;
+  resumeSuggestions: string[];
+  missingSkills: string[];
+  learningResources: { skill: string; resource: string; url: string }[];
+  expectedSalaryRange: string;
+  interviewQuestions: string[];
+  companySummary: string;
+  similarJobs: { id: string; title: string; company: string | null }[];
+}
+
 export interface NotificationDTO {
   id: string;
   channel: string;

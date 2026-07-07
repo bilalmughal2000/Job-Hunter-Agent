@@ -1,71 +1,151 @@
-import { Component, type OnInit, computed, inject, signal } from '@angular/core';
+import { Component, type OnInit, inject, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { ApiService } from '../../core/api.service';
-import { WORKFLOW_STAGES } from '../../core/models';
-import type { ApplicationDTO, JobDTO } from '../../core/models';
-
-interface Bar {
-  label: string;
-  value: number;
-  pct: number;
-}
+import type { AnalyticsDTO, CountItem } from '../../core/models';
 
 @Component({
   selector: 'app-analytics',
-  imports: [MatCardModule],
+  imports: [MatCardModule, MatIconModule],
   template: `
     <div class="page">
       <h1>Analytics</h1>
-      <div class="row">
-        <mat-card class="col">
-          <h3>Application funnel</h3>
-          @for (b of funnel(); track b.label) {
-            <div class="bar-row">
-              <span class="bl">{{ b.label }}</span>
-              <div class="track"><div class="fill" [style.width.%]="b.pct"></div></div>
-              <span class="bv">{{ b.value }}</span>
-            </div>
-          } @empty {
-            <p class="muted">No applications yet.</p>
-          }
-        </mat-card>
+      @if (a(); as data) {
+        <div class="grid">
+          <mat-card class="metric"
+            ><div class="v">{{ data.totalJobs }}</div>
+            <div class="l muted">Jobs</div></mat-card
+          >
+          <mat-card class="metric"
+            ><div class="v">{{ data.applications.total }}</div>
+            <div class="l muted">Applications</div></mat-card
+          >
+          <mat-card class="metric"
+            ><div class="v">{{ data.applications.submitted }}</div>
+            <div class="l muted">Submitted</div></mat-card
+          >
+          <mat-card class="metric"
+            ><div class="v">{{ data.applications.interviews }}</div>
+            <div class="l muted">Interviews</div></mat-card
+          >
+          <mat-card class="metric"
+            ><div class="v">{{ data.applications.offers }}</div>
+            <div class="l muted">Offers</div></mat-card
+          >
+          <mat-card class="metric"
+            ><div class="v">{{ data.applications.successRate }}%</div>
+            <div class="l muted">Success</div></mat-card
+          >
+          <mat-card class="metric"
+            ><div class="v">{{ data.averageSalary || '—' }}</div>
+            <div class="l muted">Avg salary</div></mat-card
+          >
+        </div>
 
-        <mat-card class="col">
-          <h3>Top hiring companies</h3>
-          @for (b of topCompanies(); track b.label) {
-            <div class="bar-row">
-              <span class="bl">{{ b.label }}</span>
-              <div class="track"><div class="fill alt" [style.width.%]="b.pct"></div></div>
-              <span class="bv">{{ b.value }}</span>
+        <div class="row">
+          <mat-card class="col">
+            <h3>Hiring trend (14 days)</h3>
+            <div class="spark">
+              @for (d of data.hiringTrend; track d.date) {
+                <div
+                  class="bar"
+                  [style.height.%]="barHeight(d.count, data.hiringTrend)"
+                  [title]="d.date + ': ' + d.count"
+                ></div>
+              }
             </div>
-          } @empty {
-            <p class="muted">No jobs yet.</p>
-          }
-        </mat-card>
+          </mat-card>
+          <mat-card class="col">
+            <h3>Top hiring companies</h3>
+            @for (b of data.topCompanies; track b.label) {
+              <div class="bar-row">
+                <span class="bl">{{ b.label }}</span>
+                <div class="track">
+                  <div class="fill alt" [style.width.%]="pct(b, data.topCompanies)"></div>
+                </div>
+                <span class="bv">{{ b.count }}</span>
+              </div>
+            }
+            @if (data.topCompanies.length === 0) {
+              <p class="muted">No jobs yet.</p>
+            }
+          </mat-card>
+        </div>
 
-        <mat-card class="col">
-          <h3>Most in-demand skills (missing)</h3>
-          @for (b of skillGaps(); track b.label) {
-            <div class="bar-row">
-              <span class="bl">{{ b.label }}</span>
-              <div class="track"><div class="fill warn" [style.width.%]="b.pct"></div></div>
-              <span class="bv">{{ b.value }}</span>
-            </div>
-          } @empty {
-            <p class="muted">Run matching to see skill gaps.</p>
-          }
-        </mat-card>
-      </div>
+        <div class="row">
+          <mat-card class="col">
+            <h3>Most in-demand skills</h3>
+            @for (b of data.mostDemandedSkills; track b.label) {
+              <div class="bar-row">
+                <span class="bl">{{ b.label }}</span>
+                <div class="track">
+                  <div class="fill" [style.width.%]="pct(b, data.mostDemandedSkills)"></div>
+                </div>
+                <span class="bv">{{ b.count }}</span>
+              </div>
+            }
+            @if (data.mostDemandedSkills.length === 0) {
+              <p class="muted">Analyze some jobs to populate this.</p>
+            }
+          </mat-card>
+          <mat-card class="col">
+            <h3>Your skill gaps</h3>
+            @for (b of data.skillGaps; track b.label) {
+              <div class="bar-row">
+                <span class="bl">{{ b.label }}</span>
+                <div class="track">
+                  <div class="fill warn" [style.width.%]="pct(b, data.skillGaps)"></div>
+                </div>
+                <span class="bv">{{ b.count }}</span>
+              </div>
+            }
+            @if (data.skillGaps.length === 0) {
+              <p class="muted">Run matching on jobs to see gaps.</p>
+            }
+          </mat-card>
+        </div>
+      } @else {
+        <p class="muted">Loading analytics…</p>
+      }
     </div>
   `,
   styles: [
     `
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .metric {
+        padding: 12px;
+        text-align: center;
+      }
+      .metric .v {
+        font-size: 1.3rem;
+        font-weight: 600;
+      }
+      .metric .l {
+        font-size: 0.75rem;
+      }
       .col {
         flex: 1 1 340px;
         padding: 16px;
       }
       h3 {
         margin: 0 0 12px;
+      }
+      .spark {
+        display: flex;
+        align-items: flex-end;
+        gap: 3px;
+        height: 80px;
+      }
+      .spark .bar {
+        flex: 1;
+        background: #1667d1;
+        border-radius: 2px 2px 0 0;
+        min-height: 2px;
       }
       .bar-row {
         display: flex;
@@ -75,8 +155,10 @@ interface Bar {
         font-size: 0.85rem;
       }
       .bl {
-        width: 130px;
-        text-transform: capitalize;
+        width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .bv {
         width: 28px;
@@ -104,61 +186,19 @@ interface Bar {
 })
 export class AnalyticsComponent implements OnInit {
   private readonly api = inject(ApiService);
-  private readonly apps = signal<ApplicationDTO[]>([]);
-  private readonly jobs = signal<JobDTO[]>([]);
+  readonly a = signal<AnalyticsDTO | null>(null);
 
   ngOnInit(): void {
-    this.api.listApplications().subscribe((p) => this.apps.set(p.items));
-    this.api.listJobs({ pageSize: 100 }).subscribe((p) => this.jobs.set(p.items));
+    this.api.getAnalytics().subscribe((d) => this.a.set(d));
   }
 
-  private toBars(counts: Map<string, number>, limit = 8): Bar[] {
-    const entries = [...counts.entries()]
-      .filter(([, v]) => v > 0)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, limit);
-    const max = Math.max(1, ...entries.map(([, v]) => v));
-    return entries.map(([label, value]) => ({
-      label,
-      value,
-      pct: Math.round((value / max) * 100),
-    }));
+  pct(b: CountItem, all: CountItem[]): number {
+    const max = Math.max(1, ...all.map((x) => x.count));
+    return Math.round((b.count / max) * 100);
   }
 
-  readonly funnel = computed<Bar[]>(() => {
-    const apps = this.apps();
-    if (apps.length === 0) return [];
-    const counts = new Map<string, number>();
-    for (const stage of WORKFLOW_STAGES) {
-      const idx = WORKFLOW_STAGES.indexOf(stage);
-      // Count applications that reached at least this stage.
-      counts.set(
-        stage.replace(/_/g, ' ').toLowerCase(),
-        apps.filter((a) => WORKFLOW_STAGES.indexOf(a.stage) >= idx).length,
-      );
-    }
-    const max = Math.max(1, ...counts.values());
-    return [...counts.entries()].map(([label, value]) => ({
-      label,
-      value,
-      pct: Math.round((value / max) * 100),
-    }));
-  });
-
-  readonly topCompanies = computed<Bar[]>(() => {
-    const counts = new Map<string, number>();
-    for (const j of this.jobs()) {
-      const c = j.company ?? 'Unknown';
-      counts.set(c, (counts.get(c) ?? 0) + 1);
-    }
-    return this.toBars(counts);
-  });
-
-  readonly skillGaps = computed<Bar[]>(() => {
-    const counts = new Map<string, number>();
-    for (const j of this.jobs()) {
-      for (const s of j.missingSkills) counts.set(s, (counts.get(s) ?? 0) + 1);
-    }
-    return this.toBars(counts);
-  });
+  barHeight(count: number, trend: { count: number }[]): number {
+    const max = Math.max(1, ...trend.map((x) => x.count));
+    return Math.max(4, Math.round((count / max) * 100));
+  }
 }

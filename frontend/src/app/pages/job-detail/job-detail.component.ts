@@ -7,6 +7,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ApiService } from '../../core/api.service';
 import type {
+  CareerAssistantDTO,
   CoverLetterDTO,
   JobAnalysis,
   JobDTO,
@@ -43,6 +44,9 @@ import type {
           </button>
           <button mat-stroked-button (click)="createApplication(j.id)">
             <mat-icon>add</mat-icon> Track application
+          </button>
+          <button mat-stroked-button (click)="careerAssistant(j.id)">
+            <mat-icon>school</mat-icon> Career assistant
           </button>
           <a mat-flat-button color="accent" [href]="j.url" target="_blank" rel="noopener">
             <mat-icon>open_in_new</mat-icon> Apply on {{ j.source }}
@@ -116,6 +120,45 @@ import type {
                 <pre class="letter">{{ c.content }}</pre>
               </mat-card>
             }
+            @if (assistant(); as ca) {
+              <mat-card>
+                <h3>🎓 Career Assistant</h3>
+                <p class="muted">
+                  Interview probability {{ ca.interviewProbability }}% · ATS {{ ca.atsScore }} ·
+                  Salary {{ ca.expectedSalaryRange }}
+                </p>
+                @if (ca.companySummary) {
+                  <p>{{ ca.companySummary }}</p>
+                }
+                @if (ca.learningResources.length) {
+                  <h4>Learn the gaps</h4>
+                  <ul>
+                    @for (r of ca.learningResources; track r.skill) {
+                      <li>
+                        {{ r.skill }} —
+                        <a [href]="r.url" target="_blank" rel="noopener">{{ r.resource }}</a>
+                      </li>
+                    }
+                  </ul>
+                }
+                @if (ca.interviewQuestions.length) {
+                  <h4>Likely interview questions</h4>
+                  <ul>
+                    @for (q of ca.interviewQuestions; track q) {
+                      <li>{{ q }}</li>
+                    }
+                  </ul>
+                }
+                @if (ca.resumeSuggestions.length) {
+                  <h4>Resume tips</h4>
+                  <ul>
+                    @for (s of ca.resumeSuggestions; track s) {
+                      <li>{{ s }}</li>
+                    }
+                  </ul>
+                }
+              </mat-card>
+            }
           </div>
         </div>
       }
@@ -156,6 +199,7 @@ export class JobDetailComponent implements OnInit {
   readonly matchResult = signal<MatchResult | null>(null);
   readonly version = signal<ResumeVersionDTO | null>(null);
   readonly cover = signal<CoverLetterDTO | null>(null);
+  readonly assistant = signal<CareerAssistantDTO | null>(null);
   readonly busy = signal(false);
 
   ngOnInit(): void {
@@ -166,6 +210,18 @@ export class JobDetailComponent implements OnInit {
   private err(msg: string): void {
     this.busy.set(false);
     this.snack.open(msg, 'OK', { duration: 4000 });
+  }
+
+  careerAssistant(id: string): void {
+    this.busy.set(true);
+    this.api.careerAssistant(id).subscribe({
+      next: (ca) => {
+        this.assistant.set(ca);
+        this.busy.set(false);
+      },
+      error: (e) =>
+        this.err(e.error?.error?.message ?? 'Career assistant failed — upload a resume first'),
+    });
   }
 
   analyze(id: string): void {

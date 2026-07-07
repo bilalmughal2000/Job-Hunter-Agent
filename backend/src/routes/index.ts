@@ -8,6 +8,11 @@ import { createCoverLetterRouter, createJobAiRouter, createResumeDocsRouter } fr
 import { createAuthRouter } from './auth.routes.js';
 import { createApplicationRouter } from './application.routes.js';
 import { createNotificationRouter } from './notification.routes.js';
+import {
+  createAnalyticsRouter,
+  createCareerAssistantRouter,
+  createSchedulerRouter,
+} from './analytics.routes.js';
 import { attachUser } from '../middlewares/auth.middleware.js';
 
 /**
@@ -53,6 +58,10 @@ export function createApiRouter(container: AppContainer): Router {
     '/notifications',
     createNotificationRouter(container.notificationService, container.jobService),
   );
+  // Analytics (/analytics, /skills, /reports) mounted at the API root.
+  apiRouter.use('/', createAnalyticsRouter(container.analyticsService));
+  apiRouter.use('/jobs', createCareerAssistantRouter(container.careerAssistantService));
+  apiRouter.use('/scheduler', createSchedulerRouter(container.scheduler));
 
   // apiRouter.use('/analytics', createAnalyticsRouter(...));   // Phase 9
 
