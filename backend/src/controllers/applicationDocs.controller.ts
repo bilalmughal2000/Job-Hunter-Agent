@@ -2,8 +2,7 @@ import type { Request, RequestHandler, Response } from 'express';
 import type { ApiSuccess, CoverLetterDTO, ResumeVersionDTO } from '@ajh/shared';
 import type { IApplicationDocsService } from '../services/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-
-const DEMO_USER_HEADER = 'x-user-id';
+import { resolveActingUser } from './requestUser.js';
 
 /** Customized resume versions + cover letters (Resume Optimizer / Cover Letter agents). */
 export function createApplicationDocsController(
@@ -16,7 +15,7 @@ export function createApplicationDocsController(
   editCoverLetter: RequestHandler;
 } {
   const customize = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.header(DEMO_USER_HEADER) ?? (await resolveDemoUserId());
+    const userId = await resolveActingUser(req, resolveDemoUserId);
     const { jobId, resumeId } = req.body as { jobId: string; resumeId?: string };
     const data = await docs.customize(userId, jobId, resumeId);
     const body: ApiSuccess<ResumeVersionDTO> = { ok: true, data };
@@ -30,7 +29,7 @@ export function createApplicationDocsController(
   });
 
   const createCoverLetter = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.header(DEMO_USER_HEADER) ?? (await resolveDemoUserId());
+    const userId = await resolveActingUser(req, resolveDemoUserId);
     const { jobId, resumeVersionId } = req.body as { jobId: string; resumeVersionId: string };
     const data = await docs.generateCoverLetter(userId, jobId, resumeVersionId);
     const body: ApiSuccess<CoverLetterDTO> = { ok: true, data };

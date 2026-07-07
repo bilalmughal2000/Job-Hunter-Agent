@@ -77,11 +77,13 @@ docker compose up --build
 
 The project is built **incrementally, one phase at a time**, each ending in a
 review gate. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full
-table. **Phases 1–5 are complete**: project setup, database
+table. **Phases 1–6 are complete**: project setup, database
 ([`docs/DATABASE.md`](docs/DATABASE.md)), search + deduplication
 ([`docs/SEARCH.md`](docs/SEARCH.md)), the resume & application agent
-([`docs/RESUME.md`](docs/RESUME.md)), and the AI agents — matching, resume
-optimizer, cover letter, job analysis ([`docs/AI-AGENTS.md`](docs/AI-AGENTS.md)).
+([`docs/RESUME.md`](docs/RESUME.md)), the AI agents — matching, resume
+optimizer, cover letter, job analysis ([`docs/AI-AGENTS.md`](docs/AI-AGENTS.md)),
+and the application workflow + JWT auth
+([`docs/WORKFLOW-AUTH.md`](docs/WORKFLOW-AUTH.md)).
 
 > **AI works with no paid key.** It defaults to an offline heuristic backend;
 > set `AI_PROVIDER=openai-compatible` with a free Groq/Gemini key (or local

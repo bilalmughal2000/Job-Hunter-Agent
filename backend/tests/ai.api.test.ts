@@ -7,8 +7,8 @@ import { NotFoundError } from '../src/utils/errors.js';
 
 const UUID = '11111111-1111-1111-1111-111111111111';
 
-function appWith(over: Partial<AppContainer>) {
-  const base: AppContainer = {
+function appWith(over: Partial<Record<keyof AppContainer, unknown>>) {
+  const base = {
     jobService: { list: vi.fn(), getById: vi.fn(), persistNewJobs: vi.fn() },
     searchService: { run: vi.fn() },
     resumeService: { upload: vi.fn(), getById: vi.fn(), getProfile: vi.fn() },
@@ -20,9 +20,18 @@ function appWith(over: Partial<AppContainer>) {
       generateCoverLetter: vi.fn(),
       editCoverLetter: vi.fn(),
     },
+    applicationService: {
+      create: vi.fn(),
+      advance: vi.fn(),
+      updateStatus: vi.fn(),
+      update: vi.fn(),
+      getPackage: vi.fn(),
+      list: vi.fn(),
+    },
+    authService: { register: vi.fn(), login: vi.fn(), me: vi.fn() },
     resolveDemoUserId: () => Promise.resolve('demo-user'),
     ...over,
-  };
+  } as unknown as AppContainer;
   return createApp(base);
 }
 

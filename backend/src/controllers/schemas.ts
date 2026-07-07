@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { JobSortField, JobSource, RemoteType } from '@ajh/shared';
+import { ApplicationStatus, JobSortField, JobSource, RemoteType } from '@ajh/shared';
 
 const remoteTypeEnum = z.nativeEnum(RemoteType);
 const jobSourceEnum = z.nativeEnum(JobSource);
@@ -72,4 +72,52 @@ export const coverLetterBodySchema = z.object({
 
 export const coverLetterUpdateSchema = z.object({
   content: z.string().min(1, 'content is required'),
+});
+
+// ── Auth (Phase 6) ───────────────────────────────────────────
+export const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8, 'password must be at least 8 characters'),
+  name: z.string().min(1).max(120).optional(),
+});
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+// ── Applications (Phase 6) ───────────────────────────────────
+export const createApplicationSchema = z.object({
+  jobId: z.string().uuid('Invalid job id'),
+  resumeVersionId: z.string().uuid().optional(),
+  coverLetterId: z.string().uuid().optional(),
+});
+
+export const updateApplicationSchema = z
+  .object({
+    resumeVersionId: z.string().uuid().nullable().optional(),
+    coverLetterId: z.string().uuid().nullable().optional(),
+    interviewDate: z.string().datetime().nullable().optional(),
+    followUpDate: z.string().datetime().nullable().optional(),
+    recruiterName: z.string().max(200).nullable().optional(),
+    recruiterContact: z.string().max(200).nullable().optional(),
+    notes: z.string().max(5000).nullable().optional(),
+  })
+  .strict();
+
+export const advanceApplicationSchema = z.object({
+  note: z.string().max(1000).optional(),
+});
+
+const applicationStatusEnum = z.nativeEnum(ApplicationStatus);
+
+export const updateStatusSchema = z.object({
+  status: applicationStatusEnum,
+  note: z.string().max(1000).optional(),
+});
+
+export const applicationsFilterSchema = z.object({
+  status: applicationStatusEnum.optional(),
+  page: z.coerce.number().int().positive().optional(),
+  pageSize: z.coerce.number().int().positive().max(100).optional(),
 });

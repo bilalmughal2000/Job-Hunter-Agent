@@ -5,6 +5,11 @@ export default defineConfig({
     environment: 'node',
     include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
     globals: true,
+    // Set before any module loads so config/env.ts validates with these present.
+    env: {
+      NODE_ENV: 'test',
+      JWT_SECRET: 'test-secret-not-for-production',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],

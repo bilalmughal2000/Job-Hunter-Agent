@@ -1,4 +1,7 @@
 import type {
+  ApplicationDTO,
+  ApplicationPackageDTO,
+  ApplicationStatus,
   CoverLetterDTO,
   JobAnalysis,
   JobDTO,
@@ -57,4 +60,34 @@ export interface IApplicationDocsService {
     resumeVersionId: string,
   ): Promise<CoverLetterDTO>;
   editCoverLetter(id: string, content: string): Promise<CoverLetterDTO>;
+}
+
+export interface UpdateApplicationInput {
+  resumeVersionId?: string | null;
+  coverLetterId?: string | null;
+  interviewDate?: string | null;
+  followUpDate?: string | null;
+  recruiterName?: string | null;
+  recruiterContact?: string | null;
+  notes?: string | null;
+}
+
+export interface IApplicationService {
+  create(
+    userId: string,
+    input: { jobId: string; resumeVersionId?: string; coverLetterId?: string },
+  ): Promise<ApplicationDTO>;
+  advance(userId: string, id: string, note?: string): Promise<ApplicationDTO>;
+  updateStatus(
+    userId: string,
+    id: string,
+    status: ApplicationStatus,
+    note?: string,
+  ): Promise<ApplicationDTO>;
+  update(userId: string, id: string, fields: UpdateApplicationInput): Promise<ApplicationDTO>;
+  getPackage(userId: string, id: string): Promise<ApplicationPackageDTO>;
+  list(
+    userId: string,
+    filter: { status?: ApplicationStatus; page?: number; pageSize?: number },
+  ): Promise<Paginated<ApplicationDTO>>;
 }

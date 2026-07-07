@@ -19,6 +19,7 @@ import type { CoverLetterAgent } from './agents/cover-letter/index.js';
 import { OpenAiCompatibleClient } from './ai/index.js';
 import { buildDefaultRegistry } from './providers/index.js';
 import {
+  ApplicationRepository,
   CompanyRepository,
   CoverLetterRepository,
   JobRepository,
@@ -26,9 +27,12 @@ import {
   ResumeRepository,
   ResumeVersionRepository,
   SearchHistoryRepository,
+  UserRepository,
 } from './repositories/index.js';
 import {
   ApplicationDocsService,
+  ApplicationService,
+  AuthService,
   JobAnalysisService,
   JobService,
   LocalStorage,
@@ -38,6 +42,8 @@ import {
 } from './services/index.js';
 import type {
   IApplicationDocsService,
+  IApplicationService,
+  IAuthService,
   IJobAnalysisService,
   IJobService,
   IMatchingService,
@@ -97,7 +103,9 @@ export interface AppContainer {
   jobAnalysisService: IJobAnalysisService;
   matchingService: IMatchingService;
   applicationDocsService: IApplicationDocsService;
-  /** Resolves a fallback user id until auth exists (Phase 6). */
+  applicationService: IApplicationService;
+  authService: IAuthService;
+  /** Resolves a fallback user id for pre-auth endpoints (prefers the JWT user). */
   resolveDemoUserId: () => Promise<string>;
 }
 
@@ -158,6 +166,12 @@ export function buildContainer(): AppContainer {
     coverLetterRepo,
   );
 
+  // Auth + application workflow (Phase 6)
+  const userRepo = new UserRepository(prisma);
+  const authService = new AuthService(userRepo);
+  const applicationRepo = new ApplicationRepository(prisma);
+  const applicationService = new ApplicationService(applicationRepo, jobRepo, resumeRepo);
+
   const resolveDemoUserId = async (): Promise<string> => {
     const user = await prisma.user.findFirst({ orderBy: { createdAt: 'asc' } });
     if (!user) {
@@ -173,6 +187,8 @@ export function buildContainer(): AppContainer {
     jobAnalysisService,
     matchingService,
     applicationDocsService,
+    applicationService,
+    authService,
     resolveDemoUserId,
   };
 }

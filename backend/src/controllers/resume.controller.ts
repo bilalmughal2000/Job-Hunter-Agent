@@ -3,8 +3,7 @@ import type { ApiSuccess, ResumeDTO, ResumeProfileDTO } from '@ajh/shared';
 import type { IResumeService } from '../services/index.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ValidationError } from '../utils/errors.js';
-
-const DEMO_USER_HEADER = 'x-user-id';
+import { resolveActingUser } from './requestUser.js';
 
 export function createResumeController(
   resumeService: IResumeService,
@@ -16,7 +15,7 @@ export function createResumeController(
         'No file uploaded — send multipart/form-data with a "resume" field',
       );
     }
-    const userId = req.header(DEMO_USER_HEADER) ?? (await resolveDemoUserId());
+    const userId = await resolveActingUser(req, resolveDemoUserId);
 
     const resume = await resumeService.upload({
       userId,

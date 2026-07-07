@@ -5,6 +5,9 @@ import { createJobRouter } from './job.routes.js';
 import { createSearchRouter } from './search.routes.js';
 import { createResumeRouter } from './resume.routes.js';
 import { createCoverLetterRouter, createJobAiRouter, createResumeDocsRouter } from './ai.routes.js';
+import { createAuthRouter } from './auth.routes.js';
+import { createApplicationRouter } from './application.routes.js';
+import { attachUser } from '../middlewares/auth.middleware.js';
 
 /**
  * Root API router. Feature routers are wired from the injected container so
@@ -13,7 +16,12 @@ import { createCoverLetterRouter, createJobAiRouter, createResumeDocsRouter } fr
 export function createApiRouter(container: AppContainer): Router {
   const apiRouter = Router();
 
+  // Populate req.user from a JWT when present (optional — never rejects).
+  apiRouter.use(attachUser);
+
   apiRouter.use('/health', healthRouter);
+  apiRouter.use('/auth', createAuthRouter(container.authService));
+  apiRouter.use('/applications', createApplicationRouter(container.applicationService));
   apiRouter.use('/jobs', createJobRouter(container.jobService));
   // AI job endpoints (analyze/match) share the /jobs mount.
   apiRouter.use(
@@ -41,8 +49,6 @@ export function createApiRouter(container: AppContainer): Router {
     createCoverLetterRouter(container.applicationDocsService, container.resolveDemoUserId),
   );
 
-  // Mounted in later phases:
-  // apiRouter.use('/applications', createApplicationRouter(...)); // Phase 6
   // apiRouter.use('/analytics', createAnalyticsRouter(...));   // Phase 9
 
   return apiRouter;

@@ -35,8 +35,11 @@ export default tseslint.config(
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
       // Noisy against vi.fn() mocks referenced as `obj.method` in assertions.
       '@typescript-eslint/unbound-method': 'off',
+      // Mock impls are frequently `async () => value` with no await.
+      '@typescript-eslint/require-await': 'off',
     },
   },
   prettier,

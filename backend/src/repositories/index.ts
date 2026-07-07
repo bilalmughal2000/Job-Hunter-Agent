@@ -5,6 +5,14 @@ export { ResumeRepository } from './resume.repository.js';
 export { MatchResultRepository } from './matchResult.repository.js';
 export { ResumeVersionRepository } from './resumeVersion.repository.js';
 export { CoverLetterRepository } from './coverLetter.repository.js';
+export { ApplicationRepository } from './application.repository.js';
+export { UserRepository } from './user.repository.js';
+export type {
+  IApplicationRepository,
+  ApplicationWithRelations,
+  CreateApplicationInput,
+} from './application.repository.js';
+export type { IUserRepository, CreateUserInput } from './user.repository.js';
 export type {
   ICompanyRepository,
   IJobRepository,

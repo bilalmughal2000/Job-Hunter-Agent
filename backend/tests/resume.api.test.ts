@@ -22,9 +22,26 @@ const unusedAi = {
     generateCoverLetter: () => Promise.reject(new Error('n/a')),
     editCoverLetter: () => Promise.reject(new Error('n/a')),
   },
+  applicationService: {
+    create: () => Promise.reject(new Error('n/a')),
+    advance: () => Promise.reject(new Error('n/a')),
+    updateStatus: () => Promise.reject(new Error('n/a')),
+    update: () => Promise.reject(new Error('n/a')),
+    getPackage: () => Promise.reject(new Error('n/a')),
+    list: () => Promise.reject(new Error('n/a')),
+  },
+  authService: {
+    register: () => Promise.reject(new Error('n/a')),
+    login: () => Promise.reject(new Error('n/a')),
+    me: () => Promise.reject(new Error('n/a')),
+  },
 } as unknown as Pick<
   AppContainer,
-  'jobAnalysisService' | 'matchingService' | 'applicationDocsService'
+  | 'jobAnalysisService'
+  | 'matchingService'
+  | 'applicationDocsService'
+  | 'applicationService'
+  | 'authService'
 >;
 
 function appWith(resumeService: IResumeService) {

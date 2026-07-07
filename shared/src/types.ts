@@ -329,3 +329,61 @@ export interface ApplicationSummary {
   status: ApplicationStatus;
   updatedAt: string;
 }
+
+// ─────────────────────────────────────────────────────────────
+// Application workflow (Phase 6)
+// ─────────────────────────────────────────────────────────────
+
+export interface ApplicationEventDTO {
+  fromStage: WorkflowStage | null;
+  toStage: WorkflowStage;
+  fromStatus: ApplicationStatus | null;
+  toStatus: ApplicationStatus;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface ApplicationDTO {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  company: string | null;
+  resumeVersionId: string | null;
+  coverLetterId: string | null;
+  stage: WorkflowStage;
+  status: ApplicationStatus;
+  appliedDate: string | null;
+  interviewDate: string | null;
+  followUpDate: string | null;
+  recruiterName: string | null;
+  recruiterContact: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** The complete package assembled for review before submission. */
+export interface ApplicationPackageDTO {
+  application: ApplicationDTO;
+  customizedResume: CustomizedResume | null;
+  coverLetter: string | null;
+  portfolioUrl: string | null;
+  githubUrl: string | null;
+  linkedinUrl: string | null;
+  events: ApplicationEventDTO[];
+  /** Stage the application can advance to next, or null at the end. */
+  nextStage: WorkflowStage | null;
+}
+
+// ── Auth (Phase 6) ───────────────────────────────────────────
+export interface AuthUserDTO {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+}
+
+export interface AuthResultDTO {
+  token: string;
+  user: AuthUserDTO;
+}
