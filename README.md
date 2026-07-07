@@ -51,6 +51,14 @@ curl http://localhost:3000/api/v1/health
 # { "ok": true, "data": { "status": "ok", ... } }
 ```
 
+## Deploy for free
+
+Runs on **$0** and outside Pakistan (so Telegram delivers). Recommended free
+stack — **Neon** (Postgres) + **Render** (backend, `render.yaml` blueprint) +
+**Vercel** (frontend, `frontend/vercel.json`); or one **Oracle Cloud Always
+Free** VM running `docker compose`. Full guide + options table:
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
 ## Full stack via Docker
 
 ```bash
