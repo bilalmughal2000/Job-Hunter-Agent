@@ -35,6 +35,8 @@ COPY --from=build /app/backend/prisma ./backend/prisma
 
 USER node
 EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=15s \
   CMD node -e "fetch('http://localhost:'+(process.env.PORT||3000)+'/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-CMD ["node", "backend/dist/index.js"]
+# Apply pending migrations against the (managed) DB, then start the API.
+# `prisma` is a runtime dependency so `migrate deploy` works in this image.
+CMD ["sh", "-c", "cd backend && npx prisma migrate deploy && cd .. && node backend/dist/index.js"]

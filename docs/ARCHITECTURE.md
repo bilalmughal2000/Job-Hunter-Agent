@@ -78,7 +78,7 @@ Every endpoint returns a typed envelope (`ApiResponse<T>` from `@ajh/shared`):
 | 7 ✅  | Angular dashboard: pages, filters, board, analytics viz                        |
 | 8 ✅  | Notifications: Telegram + email (+ in-app feed)                                |
 | 9     | Analytics & reporting, career assistant outputs                                |
-| 10    | Deployment: compose, deploy guides, CI/CD                                      |
+| 10 ✅ | Deployment: compose, Render blueprint, deploy guides, CI/CD                    |
 
 ## Compliance note
 
