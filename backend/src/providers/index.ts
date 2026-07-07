@@ -28,14 +28,19 @@ const COMPLIANT_SOURCES: { source: JobSource; displayName: string }[] = [
 /**
  * Builds the default registry:
  *  - RemotiveProvider — REAL, free, key-less live remote jobs (enabled).
- *  - SampleProvider — offline fixtures, useful for demos/tests (enabled).
  *  - a disabled compliant stub for every gated source (LinkedIn, Indeed, …).
+ * The SampleProvider (offline fixtures with placeholder URLs) is intentionally
+ * NOT registered here so every job has a real, applyable link; it's kept for
+ * tests/offline demos and can be added via `includeSample`.
  * Swap a stub for a real subclass once a ToS-compliant integration exists.
  */
-export function buildDefaultRegistry(ctx: ProviderContext): ProviderRegistry {
+export function buildDefaultRegistry(
+  ctx: ProviderContext,
+  options: { includeSample?: boolean } = {},
+): ProviderRegistry {
   const registry = new ProviderRegistry();
   registry.register(new RemotiveProvider(ctx));
-  registry.register(new SampleProvider(ctx));
+  if (options.includeSample) registry.register(new SampleProvider(ctx));
   for (const cfg of COMPLIANT_SOURCES) {
     registry.register(new CompliantStubProvider(ctx, cfg));
   }

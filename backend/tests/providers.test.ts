@@ -7,21 +7,26 @@ import { logger } from '../src/utils/logger.js';
 const ctx = () => ({ cache: new InMemoryCache(), logger, rateLimitMs: 0, retries: 0 });
 
 describe('buildDefaultRegistry', () => {
-  it('enables the real Remotive + Sample providers and disables gated stubs', () => {
+  it('enables the real Remotive provider and disables gated stubs by default', () => {
     const registry = buildDefaultRegistry(ctx());
     const available = registry.available().map((p) => p.source);
-    // Remotive (real, key-less) and the Sample fixtures are enabled.
+    // Remotive (real, key-less) is enabled; sample fixtures are NOT by default.
     expect(available).toContain(JobSource.REMOTIVE);
-    expect(available).toContain(JobSource.MANUAL);
+    expect(available).not.toContain(JobSource.MANUAL);
     // Gated sources are registered but disabled until a compliant integration.
     expect(registry.get(JobSource.LINKEDIN)?.isAvailable()).toBe(false);
     expect(registry.get(JobSource.INDEED)?.isAvailable()).toBe(false);
   });
 
+  it('can opt into the sample provider (offline/demo)', () => {
+    const registry = buildDefaultRegistry(ctx(), { includeSample: true });
+    expect(registry.available().map((p) => p.source)).toContain(JobSource.MANUAL);
+  });
+
   it('filters available providers by requested sources', () => {
     const registry = buildDefaultRegistry(ctx());
     expect(registry.available([JobSource.LINKEDIN])).toHaveLength(0);
-    expect(registry.available([JobSource.MANUAL])).toHaveLength(1);
+    expect(registry.available([JobSource.REMOTIVE])).toHaveLength(1);
   });
 });
 

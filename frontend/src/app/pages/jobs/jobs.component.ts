@@ -87,9 +87,18 @@ import type { JobDTO, JobSortField } from '../../core/models';
               <div class="muted">💰 {{ job.salary }}</div>
             }
             <div>
+              <span class="chip">via {{ job.source }}</span>
               @for (s of job.missingSkills; track s) {
                 <span class="chip warn">missing: {{ s }}</span>
               }
+            </div>
+            <div class="row" style="margin-top:6px">
+              <a mat-button color="primary" [routerLink]="['/jobs', job.id]">
+                <mat-icon>visibility</mat-icon> Details
+              </a>
+              <a mat-button color="accent" [href]="job.url" target="_blank" rel="noopener">
+                <mat-icon>open_in_new</mat-icon> Apply on {{ job.source }}
+              </a>
             </div>
           </mat-card>
         } @empty {
