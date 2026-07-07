@@ -66,8 +66,10 @@ export class RemoteOkProvider extends BaseProvider {
     return jobs
       .map((j) => this.normalize(j))
       .filter((j) => {
-        const hay = `${j.title} ${j.description} ${j.company}`.toLowerCase();
-        if (keywords.length > 0 && !keywords.every((k) => hay.includes(k))) return false;
+        const hay =
+          `${j.title} ${j.description} ${j.company} ${j.requirements ?? ''}`.toLowerCase();
+        // Any keyword match (RemoteOK's feed is small + unsearchable, so be lenient).
+        if (keywords.length > 0 && !keywords.some((k) => hay.includes(k))) return false;
         if (excludes.some((k) => hay.includes(k))) return false;
         return true;
       });

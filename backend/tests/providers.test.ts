@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { JobSource, RemoteType } from '@ajh/shared';
-import { buildDefaultRegistry, RemoteOkProvider, SampleProvider } from '../src/providers/index.js';
+import {
+  buildDefaultRegistry,
+  JSearchProvider,
+  RemoteOkProvider,
+  SampleProvider,
+} from '../src/providers/index.js';
 import { InMemoryCache } from '../src/utils/cache.js';
 import { logger } from '../src/utils/logger.js';
 
@@ -28,6 +33,66 @@ describe('buildDefaultRegistry', () => {
     const registry = buildDefaultRegistry(ctx());
     expect(registry.available([JobSource.LINKEDIN])).toHaveLength(0);
     expect(registry.available([JobSource.REMOTIVE])).toHaveLength(1);
+  });
+
+  it('enables JSearch (Google/LinkedIn/Indeed) only when an API key is provided', () => {
+    expect(buildDefaultRegistry(ctx()).get(JobSource.GOOGLE_JOBS)?.isAvailable()).toBe(false);
+    const withKey = buildDefaultRegistry(ctx(), { jsearchApiKey: 'test-key' });
+    expect(withKey.get(JobSource.GOOGLE_JOBS)?.isAvailable()).toBe(true);
+  });
+});
+
+describe('JSearchProvider', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('maps aggregated results and labels the publisher source (LinkedIn/Indeed)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: [
+              {
+                job_id: 'a1',
+                employer_name: 'Tkxel',
+                job_title: 'Angular Developer',
+                job_apply_link: 'https://www.linkedin.com/jobs/view/123',
+                job_description: 'Build Angular apps',
+                job_city: 'Lahore',
+                job_country: 'Pakistan',
+                job_employment_type: 'FULLTIME',
+                job_publisher: 'LinkedIn',
+              },
+              {
+                job_id: 'b2',
+                employer_name: 'Systems',
+                job_title: 'Frontend Engineer',
+                job_apply_link: 'https://indeed.com/viewjob?jk=456',
+                job_description: 'React role',
+                job_is_remote: true,
+                job_publisher: 'Indeed',
+              },
+            ],
+          }),
+      }),
+    );
+    const jobs = await new JSearchProvider(ctx(), 'test-key').search({
+      keywords: ['angular'],
+      locations: ['Lahore, Pakistan'],
+    });
+    expect(jobs).toHaveLength(2);
+    const li = jobs.find((j) => j.company === 'Tkxel');
+    expect(li?.source).toBe(JobSource.LINKEDIN);
+    expect(li?.location).toBe('Lahore, Pakistan');
+    expect(li?.url).toContain('linkedin.com');
+    const indeed = jobs.find((j) => j.company === 'Systems');
+    expect(indeed?.source).toBe(JobSource.INDEED);
+    expect(indeed?.remoteType).toBe(RemoteType.REMOTE);
+  });
+
+  it('is unavailable without a key', () => {
+    expect(new JSearchProvider(ctx(), '').isAvailable()).toBe(false);
   });
 });
 

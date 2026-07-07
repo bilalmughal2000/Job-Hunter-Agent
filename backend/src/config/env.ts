@@ -26,6 +26,10 @@ const envSchema = z.object({
   AI_API_KEY: z.string().optional(),
   AI_MODEL: z.string().default('gpt-4o-mini'),
   AI_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
+
+  // JSearch (RapidAPI) — free key unlocks LinkedIn/Indeed/Google jobs incl. Lahore.
+  JSEARCH_API_KEY: z.string().optional(),
+  JSEARCH_HOST: z.string().default('jsearch.p.rapidapi.com'),
   // Back-compat aliases (Phase 1 naming).
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),

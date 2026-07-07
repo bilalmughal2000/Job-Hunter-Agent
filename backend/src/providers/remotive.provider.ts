@@ -74,9 +74,8 @@ export class RemotiveProvider extends BaseProvider {
       .map((j) => this.normalize(j))
       .filter((j) => {
         const hay = `${j.title} ${j.description} ${j.company}`.toLowerCase();
-        // Remotive's `search` is broad, so keep only jobs that actually contain
-        // every requested keyword (relevance), and none of the exclusions.
-        if (keywords.length > 0 && !keywords.every((k) => hay.includes(k))) return false;
+        // Keep jobs matching any requested keyword; drop excluded terms.
+        if (keywords.length > 0 && !keywords.some((k) => hay.includes(k))) return false;
         if (excludes.some((k) => hay.includes(k))) return false;
         return true;
       });

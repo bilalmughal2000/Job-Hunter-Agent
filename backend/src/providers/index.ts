@@ -3,6 +3,7 @@ import { ProviderRegistry } from './registry.js';
 import { SampleProvider } from './sample.provider.js';
 import { RemotiveProvider } from './remotive.provider.js';
 import { RemoteOkProvider } from './remoteok.provider.js';
+import { JSearchProvider } from './jsearch.provider.js';
 import { CompliantStubProvider } from './stub.provider.js';
 import type { ProviderContext } from './types.js';
 
@@ -11,6 +12,7 @@ export { BaseProvider } from './base.provider.js';
 export { SampleProvider } from './sample.provider.js';
 export { RemotiveProvider } from './remotive.provider.js';
 export { RemoteOkProvider } from './remoteok.provider.js';
+export { JSearchProvider } from './jsearch.provider.js';
 export { CompliantStubProvider } from './stub.provider.js';
 export type { JobSourceProvider, ProviderContext } from './types.js';
 
@@ -38,7 +40,7 @@ const COMPLIANT_SOURCES: { source: JobSource; displayName: string }[] = [
  */
 export function buildDefaultRegistry(
   ctx: ProviderContext,
-  options: { includeSample?: boolean } = {},
+  options: { includeSample?: boolean; jsearchApiKey?: string; jsearchHost?: string } = {},
 ): ProviderRegistry {
   const registry = new ProviderRegistry();
   registry.register(new RemotiveProvider(ctx));
@@ -46,6 +48,11 @@ export function buildDefaultRegistry(
   if (options.includeSample) registry.register(new SampleProvider(ctx));
   for (const cfg of COMPLIANT_SOURCES) {
     registry.register(new CompliantStubProvider(ctx, cfg));
+  }
+  // JSearch (RapidAPI) unlocks LinkedIn/Indeed/Google + location search when a
+  // free key is set. Registered last so it replaces the disabled Google stub.
+  if (options.jsearchApiKey) {
+    registry.register(new JSearchProvider(ctx, options.jsearchApiKey, options.jsearchHost));
   }
   return registry;
 }

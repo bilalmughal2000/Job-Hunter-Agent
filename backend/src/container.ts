@@ -112,12 +112,15 @@ export interface AppContainer {
 /** Builds the production container wired to Prisma + the default providers. */
 export function buildContainer(): AppContainer {
   const dedup = new DeduplicationAgent();
-  const registry = buildDefaultRegistry({
-    cache: new InMemoryCache(),
-    logger,
-    rateLimitMs: 500,
-    retries: 2,
-  });
+  const registry = buildDefaultRegistry(
+    {
+      cache: new InMemoryCache(),
+      logger,
+      rateLimitMs: 500,
+      retries: 2,
+    },
+    { jsearchApiKey: env.JSEARCH_API_KEY, jsearchHost: env.JSEARCH_HOST },
+  );
   const searchAgent = new SearchAgent(registry, dedup, logger);
 
   const jobRepo = new JobRepository(prisma);
