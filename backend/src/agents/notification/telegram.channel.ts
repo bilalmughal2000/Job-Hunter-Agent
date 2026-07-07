@@ -28,17 +28,26 @@ export class TelegramChannel implements NotificationChannelSender {
 
     await withRetry(
       async () => {
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
-        });
-        if (!res.ok) {
-          const detail = await res.text().catch(() => '');
-          throw new Error(`Telegram sendMessage failed: ${res.status} ${detail}`);
+        // Fail fast: a network-blocked Telegram (e.g. region block) otherwise
+        // hangs on connect. Abort after 10s instead of stalling notifications.
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 10_000);
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'Markdown' }),
+            signal: controller.signal,
+          });
+          if (!res.ok) {
+            const detail = await res.text().catch(() => '');
+            throw new Error(`Telegram sendMessage failed: ${res.status} ${detail}`);
+          }
+        } finally {
+          clearTimeout(timer);
         }
       },
-      { retries: 2 },
+      { retries: 1 },
     );
   }
 }
