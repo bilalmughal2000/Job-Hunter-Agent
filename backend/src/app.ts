@@ -6,14 +6,15 @@ import { rateLimit } from 'express-rate-limit';
 import { pinoHttp } from 'pino-http';
 import { env } from './config/index.js';
 import { logger } from './utils/logger.js';
-import { apiRouter } from './routes/index.js';
+import { createApiRouter } from './routes/index.js';
+import { buildContainer, type AppContainer } from './container.js';
 import { errorHandler, notFoundHandler } from './middlewares/error.middleware.js';
 
 /**
  * Builds the Express application. Exported as a factory so tests can spin up
- * an app instance without binding to a port.
+ * an app instance without binding to a port, and inject a fake container.
  */
-export function createApp(): Express {
+export function createApp(container: AppContainer = buildContainer()): Express {
   const app = express();
 
   app.disable('x-powered-by');
@@ -43,7 +44,7 @@ export function createApp(): Express {
   );
 
   // API
-  app.use('/api/v1', apiRouter);
+  app.use('/api/v1', createApiRouter(container));
 
   // Errors (must be last)
   app.use(notFoundHandler);

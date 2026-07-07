@@ -12,6 +12,7 @@ import {
   Role,
   SkillType,
 } from '@prisma/client';
+import { jobFingerprint } from '../src/utils/text.js';
 
 const prisma = new PrismaClient();
 
@@ -118,13 +119,15 @@ async function main(): Promise<void> {
     },
   });
 
+  const demoJobTitle = 'Frontend Angular Developer';
+  const demoJobLocation = 'Lahore, Pakistan';
   await prisma.job.upsert({
     where: { url: 'https://example.com/jobs/tkxel-angular-1' },
     update: {},
     create: {
-      title: 'Frontend Angular Developer',
+      title: demoJobTitle,
       companyId: tkxel.id,
-      location: 'Lahore, Pakistan',
+      location: demoJobLocation,
       country: 'Pakistan',
       salary: 'PKR 250,000 - 400,000',
       experience: '3+ years',
@@ -139,6 +142,9 @@ async function main(): Promise<void> {
       status: JobStatus.NEW,
       missingSkills: ['Azure'],
       matchScore: 92,
+      // Same fingerprint the Deduplication Agent computes, so the search
+      // pipeline recognizes this seeded job and won't re-insert a duplicate.
+      dedupHash: jobFingerprint('Tkxel', demoJobTitle, demoJobLocation),
     },
   });
 
