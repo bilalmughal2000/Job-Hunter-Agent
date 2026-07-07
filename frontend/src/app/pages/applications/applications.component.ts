@@ -14,18 +14,26 @@ import type { ApplicationDTO, ApplicationStatus } from '../../core/models';
   template: `
     <div class="page">
       <h1>Applications</h1>
-      <p class="muted">Workflow board — advance stages and track status. Submission needs approval.</p>
+      <p class="muted">
+        Workflow board — advance stages and track status. Submission needs approval.
+      </p>
 
       <div class="board">
         @for (stage of stages; track stage) {
           <div class="col">
-            <div class="col-head">{{ label(stage) }} <span class="count">{{ byStage(stage).length }}</span></div>
+            <div class="col-head">
+              {{ label(stage) }} <span class="count">{{ byStage(stage).length }}</span>
+            </div>
             @for (a of byStage(stage); track a.id) {
               <mat-card class="card">
                 <strong>{{ a.jobTitle }}</strong>
                 <div class="muted">{{ a.company }}</div>
-                <span class="chip" [class.good]="a.status === 'OFFER_RECEIVED'"
-                  [class.warn]="a.status === 'REJECTED'">{{ a.status }}</span>
+                <span
+                  class="chip"
+                  [class.good]="a.status === 'OFFER_RECEIVED'"
+                  [class.warn]="a.status === 'REJECTED'"
+                  >{{ a.status }}</span
+                >
                 <div class="actions">
                   <button mat-icon-button title="Advance stage" (click)="advance(a)">
                     <mat-icon>arrow_forward</mat-icon>
@@ -111,14 +119,16 @@ export class ApplicationsComponent implements OnInit {
   advance(a: ApplicationDTO): void {
     this.api.advanceApplication(a.id).subscribe({
       next: () => this.load(),
-      error: (e) => this.snack.open(e.error?.error?.message ?? 'Cannot advance', 'OK', { duration: 4000 }),
+      error: (e) =>
+        this.snack.open(e.error?.error?.message ?? 'Cannot advance', 'OK', { duration: 4000 }),
     });
   }
 
   setStatus(a: ApplicationDTO, status: ApplicationStatus): void {
     this.api.setApplicationStatus(a.id, status).subscribe({
       next: () => this.load(),
-      error: (e) => this.snack.open(e.error?.error?.message ?? 'Invalid transition', 'OK', { duration: 4000 }),
+      error: (e) =>
+        this.snack.open(e.error?.error?.message ?? 'Invalid transition', 'OK', { duration: 4000 }),
     });
   }
 }

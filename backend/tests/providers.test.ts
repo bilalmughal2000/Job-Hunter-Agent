@@ -7,13 +7,15 @@ import { logger } from '../src/utils/logger.js';
 const ctx = () => ({ cache: new InMemoryCache(), logger, rateLimitMs: 0, retries: 0 });
 
 describe('buildDefaultRegistry', () => {
-  it('registers the sample provider as available and stubs as unavailable', () => {
+  it('enables the real Remotive + Sample providers and disables gated stubs', () => {
     const registry = buildDefaultRegistry(ctx());
-    const available = registry.available();
-    expect(available.map((p) => p.source)).toEqual([JobSource.MANUAL]);
-    // All real sources are registered but disabled until compliant integration.
-    expect(registry.all().length).toBeGreaterThan(1);
+    const available = registry.available().map((p) => p.source);
+    // Remotive (real, key-less) and the Sample fixtures are enabled.
+    expect(available).toContain(JobSource.REMOTIVE);
+    expect(available).toContain(JobSource.MANUAL);
+    // Gated sources are registered but disabled until a compliant integration.
     expect(registry.get(JobSource.LINKEDIN)?.isAvailable()).toBe(false);
+    expect(registry.get(JobSource.INDEED)?.isAvailable()).toBe(false);
   });
 
   it('filters available providers by requested sources', () => {

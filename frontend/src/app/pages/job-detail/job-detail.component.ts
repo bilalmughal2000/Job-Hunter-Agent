@@ -21,8 +21,12 @@ import type {
     <div class="page">
       @if (job(); as j) {
         <h1>{{ j.title }}</h1>
-        <p class="muted">{{ j.company }} · {{ j.location }} · {{ j.remoteType }} · {{ j.source }}</p>
-        @if (busy()) { <mat-progress-bar mode="indeterminate" /> }
+        <p class="muted">
+          {{ j.company }} · {{ j.location }} · {{ j.remoteType }} · {{ j.source }}
+        </p>
+        @if (busy()) {
+          <mat-progress-bar mode="indeterminate" />
+        }
 
         <div class="row" style="margin:12px 0">
           <button mat-flat-button color="primary" (click)="analyze(j.id)">
@@ -46,7 +50,10 @@ import type {
           <mat-card class="col">
             <h3>Description</h3>
             <p>{{ j.description }}</p>
-            @if (j.requirements) { <h3>Requirements</h3><p>{{ j.requirements }}</p> }
+            @if (j.requirements) {
+              <h3>Requirements</h3>
+              <p>{{ j.requirements }}</p>
+            }
           </mat-card>
 
           <div class="col results">
@@ -54,16 +61,32 @@ import type {
               <mat-card>
                 <h3>AI Summary</h3>
                 <p>{{ a.summary }}</p>
-                <div>@for (s of a.requiredSkills; track s) { <span class="chip">{{ s }}</span> }</div>
-                <div>@for (s of a.preferredSkills; track s) { <span class="chip good">pref: {{ s }}</span> }</div>
+                <div>
+                  @for (s of a.requiredSkills; track s) {
+                    <span class="chip">{{ s }}</span>
+                  }
+                </div>
+                <div>
+                  @for (s of a.preferredSkills; track s) {
+                    <span class="chip good">pref: {{ s }}</span>
+                  }
+                </div>
               </mat-card>
             }
             @if (matchResult(); as m) {
               <mat-card>
                 <h3>Match: {{ m.matchScore }}%</h3>
                 <p>{{ m.explanation }}</p>
-                <div>@for (s of m.strongSkills; track s) { <span class="chip good">{{ s }}</span> }</div>
-                <div>@for (s of m.missingSkills; track s) { <span class="chip warn">{{ s }}</span> }</div>
+                <div>
+                  @for (s of m.strongSkills; track s) {
+                    <span class="chip good">{{ s }}</span>
+                  }
+                </div>
+                <div>
+                  @for (s of m.missingSkills; track s) {
+                    <span class="chip warn">{{ s }}</span>
+                  }
+                </div>
                 <p class="muted">{{ m.recommendation }}</p>
               </mat-card>
             }
@@ -71,7 +94,11 @@ import type {
               <mat-card>
                 <h3>Customized resume v{{ v.version }} · ATS {{ v.atsScore }}</h3>
                 <p>{{ v.content.summary }}</p>
-                <div>@for (s of v.content.highlightedSkills; track s) { <span class="chip">{{ s }}</span> }</div>
+                <div>
+                  @for (s of v.content.highlightedSkills; track s) {
+                    <span class="chip">{{ s }}</span>
+                  }
+                </div>
               </mat-card>
             }
             @if (cover(); as c) {
@@ -187,7 +214,8 @@ export class JobDetailComponent implements OnInit {
       })
       .subscribe({
         next: (a) => {
-          this.snack.open('Application created', 'View', { duration: 3000 })
+          this.snack
+            .open('Application created', 'View', { duration: 3000 })
             .onAction()
             .subscribe(() => void this.router.navigate(['/applications']));
           void a;

@@ -25,7 +25,9 @@ interface Bar {
               <div class="track"><div class="fill" [style.width.%]="b.pct"></div></div>
               <span class="bv">{{ b.value }}</span>
             </div>
-          } @empty { <p class="muted">No applications yet.</p> }
+          } @empty {
+            <p class="muted">No applications yet.</p>
+          }
         </mat-card>
 
         <mat-card class="col">
@@ -36,7 +38,9 @@ interface Bar {
               <div class="track"><div class="fill alt" [style.width.%]="b.pct"></div></div>
               <span class="bv">{{ b.value }}</span>
             </div>
-          } @empty { <p class="muted">No jobs yet.</p> }
+          } @empty {
+            <p class="muted">No jobs yet.</p>
+          }
         </mat-card>
 
         <mat-card class="col">
@@ -47,7 +51,9 @@ interface Bar {
               <div class="track"><div class="fill warn" [style.width.%]="b.pct"></div></div>
               <span class="bv">{{ b.value }}</span>
             </div>
-          } @empty { <p class="muted">Run matching to see skill gaps.</p> }
+          } @empty {
+            <p class="muted">Run matching to see skill gaps.</p>
+          }
         </mat-card>
       </div>
     </div>
@@ -107,9 +113,16 @@ export class AnalyticsComponent implements OnInit {
   }
 
   private toBars(counts: Map<string, number>, limit = 8): Bar[] {
-    const entries = [...counts.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, limit);
+    const entries = [...counts.entries()]
+      .filter(([, v]) => v > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit);
     const max = Math.max(1, ...entries.map(([, v]) => v));
-    return entries.map(([label, value]) => ({ label, value, pct: Math.round((value / max) * 100) }));
+    return entries.map(([label, value]) => ({
+      label,
+      value,
+      pct: Math.round((value / max) * 100),
+    }));
   }
 
   readonly funnel = computed<Bar[]>(() => {

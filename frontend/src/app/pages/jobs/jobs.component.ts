@@ -60,7 +60,9 @@ import type { JobDTO, JobSortField } from '../../core/models';
         </div>
       </mat-card>
 
-      @if (loading() || searching()) { <mat-progress-bar mode="indeterminate" /> }
+      @if (loading() || searching()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
 
       <p class="muted">{{ total() }} jobs</p>
       <div class="list">
@@ -68,16 +70,26 @@ import type { JobDTO, JobSortField } from '../../core/models';
           <mat-card class="job">
             <div class="row" style="justify-content:space-between;align-items:flex-start">
               <div>
-                <a [routerLink]="['/jobs', job.id]"><strong>{{ job.title }}</strong></a>
-                <div class="muted">{{ job.company }} · {{ job.location }} · {{ job.remoteType }}</div>
+                <a [routerLink]="['/jobs', job.id]"
+                  ><strong>{{ job.title }}</strong></a
+                >
+                <div class="muted">
+                  {{ job.company }} · {{ job.location }} · {{ job.remoteType }}
+                </div>
               </div>
               @if (job.matchScore !== null) {
-                <span class="chip" [class.good]="job.matchScore >= 75">{{ job.matchScore }}% match</span>
+                <span class="chip" [class.good]="job.matchScore >= 75"
+                  >{{ job.matchScore }}% match</span
+                >
               }
             </div>
-            @if (job.salary) { <div class="muted">💰 {{ job.salary }}</div> }
+            @if (job.salary) {
+              <div class="muted">💰 {{ job.salary }}</div>
+            }
             <div>
-              @for (s of job.missingSkills; track s) { <span class="chip warn">missing: {{ s }}</span> }
+              @for (s of job.missingSkills; track s) {
+                <span class="chip warn">missing: {{ s }}</span>
+              }
             </div>
           </mat-card>
         } @empty {
@@ -147,11 +159,16 @@ export class JobsComponent implements OnInit {
   runSearch(): void {
     this.searching.set(true);
     this.api
-      .runSearch({ keywords: this.keywords ? this.keywords.split(' ') : ['angular'], locations: ['Lahore'] })
+      .runSearch({
+        keywords: this.keywords ? this.keywords.split(' ') : ['angular'],
+        locations: ['Lahore'],
+      })
       .subscribe({
         next: (s) => {
           this.searching.set(false);
-          this.snack.open(`Found ${s.totalFound}, ${s.newlyPersisted} new`, 'OK', { duration: 3000 });
+          this.snack.open(`Found ${s.totalFound}, ${s.newlyPersisted} new`, 'OK', {
+            duration: 3000,
+          });
           this.load();
         },
         error: () => {

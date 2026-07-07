@@ -30,8 +30,12 @@ interface Metric {
       </div>
 
       <div class="row" style="margin-top:24px">
-        <a mat-flat-button color="primary" routerLink="/jobs"><mat-icon>search</mat-icon> Find jobs</a>
-        <a mat-stroked-button routerLink="/resume"><mat-icon>upload_file</mat-icon> Manage resume</a>
+        <a mat-flat-button color="primary" routerLink="/jobs"
+          ><mat-icon>search</mat-icon> Find jobs</a
+        >
+        <a mat-stroked-button routerLink="/resume"
+          ><mat-icon>upload_file</mat-icon> Manage resume</a
+        >
         <a mat-stroked-button routerLink="/applications"
           ><mat-icon>assignment</mat-icon> Applications</a
         >

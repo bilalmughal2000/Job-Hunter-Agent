@@ -28,6 +28,10 @@ providers extend `BaseProvider`, which supplies the Search Strategy cross-cuttin
 concerns once — **caching, rate limiting, retry** — so a provider implements only
 `fetch(query)`.
 
+- **`RemotiveProvider`** — **REAL, free, key-less** live remote jobs via
+  Remotive's public API (`remotive.com/api/remote-jobs`). Enabled by default;
+  results are relevance-filtered to the query keywords. This is where genuine
+  live job data comes from today.
 - **`SampleProvider`** — a fully-working provider over a fixed dataset. It makes
   the whole pipeline runnable and testable offline and is the reference impl.
 - **`CompliantStubProvider`** — registered for every real source (LinkedIn,

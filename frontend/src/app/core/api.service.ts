@@ -51,7 +51,9 @@ export class ApiService {
   }
 
   analyzeJob(id: string): Observable<JobAnalysis> {
-    return this.data(this.http.post<ApiSuccess<JobAnalysis>>(`${this.base}/jobs/${id}/analyze`, {}));
+    return this.data(
+      this.http.post<ApiSuccess<JobAnalysis>>(`${this.base}/jobs/${id}/analyze`, {}),
+    );
   }
 
   matchJob(id: string, resumeId?: string): Observable<MatchResult> {
@@ -122,9 +124,7 @@ export class ApiService {
     resumeVersionId?: string;
     coverLetterId?: string;
   }): Observable<ApplicationDTO> {
-    return this.data(
-      this.http.post<ApiSuccess<ApplicationDTO>>(`${this.base}/applications`, body),
-    );
+    return this.data(this.http.post<ApiSuccess<ApplicationDTO>>(`${this.base}/applications`, body));
   }
 
   getApplication(id: string): Observable<ApplicationPackageDTO> {

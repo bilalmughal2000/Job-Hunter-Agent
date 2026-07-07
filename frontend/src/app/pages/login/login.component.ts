@@ -26,7 +26,9 @@ import { AuthService } from '../../core/auth.service';
       <mat-card class="card">
         <h1>🎯 AI Job Hunter</h1>
         <p class="muted">Find, score and manage Angular jobs in Lahore.</p>
-        @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+        @if (loading()) {
+          <mat-progress-bar mode="indeterminate" />
+        }
         <mat-tab-group>
           <mat-tab label="Log in">
             <form (ngSubmit)="login()" class="form">
@@ -59,7 +61,9 @@ import { AuthService } from '../../core/auth.service';
             </form>
           </mat-tab>
         </mat-tab-group>
-        @if (error()) { <p class="err">{{ error() }}</p> }
+        @if (error()) {
+          <p class="err">{{ error() }}</p>
+        }
       </mat-card>
     </div>
   `,
@@ -117,7 +121,9 @@ export class LoginComponent {
     if (!this.email || !this.password) return;
     this.loading.set(true);
     this.error.set('');
-    this.auth.login(this.email, this.password).subscribe({ next: () => this.done(), error: (e) => this.fail(e) });
+    this.auth
+      .login(this.email, this.password)
+      .subscribe({ next: () => this.done(), error: (e) => this.fail(e) });
   }
 
   register(): void {

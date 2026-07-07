@@ -30,6 +30,7 @@ enum JobSourceKind {
   GREENHOUSE
   LEVER
   COMPANY_CAREER
+  REMOTIVE
   MANUAL
 }
 
