@@ -93,6 +93,38 @@ describe('JSearchProvider', () => {
     expect(indeed?.remoteType).toBe(RemoteType.REMOTE);
   });
 
+  it('prefers a LinkedIn apply option when the primary publisher differs', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            data: {
+              jobs: [
+                {
+                  job_id: 'c3',
+                  employer_name: 'NexaQuanta',
+                  job_title: 'Senior Angular Developer',
+                  job_apply_link: 'https://bebee.com/pk/jobs/senior-angular',
+                  job_publisher: 'BeBee',
+                  job_city: 'Lahore',
+                  job_country: 'Pakistan',
+                  apply_options: [
+                    { publisher: 'BeBee', apply_link: 'https://bebee.com/pk/jobs/senior-angular' },
+                    { publisher: 'LinkedIn', apply_link: 'https://www.linkedin.com/jobs/view/999' },
+                  ],
+                },
+              ],
+            },
+          }),
+      }),
+    );
+    const jobs = await new JSearchProvider(ctx(), 'test-key').search({ keywords: ['angular'] });
+    expect(jobs[0]?.source).toBe(JobSource.LINKEDIN);
+    expect(jobs[0]?.url).toContain('linkedin.com');
+  });
+
   it('is unavailable without a key', () => {
     expect(new JSearchProvider(ctx(), '').isAvailable()).toBe(false);
   });

@@ -22,6 +22,8 @@ interface JSearchJob {
   job_publisher?: string;
   job_min_salary?: number | null;
   job_max_salary?: number | null;
+  /** Alternate apply links across publishers (often includes LinkedIn/Indeed). */
+  apply_options?: { publisher?: string; apply_link?: string }[];
 }
 
 interface JSearchResponse {
@@ -105,6 +107,22 @@ export class JSearchProvider extends BaseProvider {
       });
   }
 
+  /**
+   * Prefer a LinkedIn (then Indeed) apply link when the aggregator lists one,
+   * so those postings surface as LINKEDIN/INDEED with the right apply URL;
+   * otherwise fall back to the primary apply link + publisher.
+   */
+  private chooseApply(j: JSearchJob): { url: string; source: JobSource } {
+    const opts = j.apply_options ?? [];
+    const preferred =
+      opts.find((o) => /linkedin/i.test(o.publisher ?? '')) ??
+      opts.find((o) => /indeed/i.test(o.publisher ?? ''));
+    if (preferred?.apply_link) {
+      return { url: preferred.apply_link, source: publisherToSource(preferred.publisher) };
+    }
+    return { url: j.job_apply_link ?? '', source: publisherToSource(j.job_publisher) };
+  }
+
   private normalize(j: JSearchJob): NormalizedJob {
     const city = j.job_city?.trim();
     const country = j.job_country?.trim();
@@ -113,6 +131,7 @@ export class JSearchProvider extends BaseProvider {
       : [city, country].filter(Boolean).join(', ') || 'Unspecified';
     const salary =
       j.job_min_salary && j.job_max_salary ? `${j.job_min_salary} - ${j.job_max_salary}` : null;
+    const apply = this.chooseApply(j);
     return {
       title: j.job_title ?? 'Untitled',
       company: j.employer_name ?? 'Unknown',
@@ -125,8 +144,8 @@ export class JSearchProvider extends BaseProvider {
       description: (j.job_description ?? '').slice(0, 5000),
       requirements: null,
       benefits: null,
-      url: j.job_apply_link ?? '',
-      source: publisherToSource(j.job_publisher),
+      url: apply.url,
+      source: apply.source,
       postedDate: j.job_posted_at_datetime_utc ?? null,
       externalId: j.job_id ?? null,
     };
