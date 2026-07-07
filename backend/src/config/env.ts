@@ -18,6 +18,15 @@ const envSchema = z.object({
   // The following are optional in Phase 1 and become required in later phases.
   DATABASE_URL: z.string().optional(),
   REDIS_URL: z.string().optional(),
+
+  // AI (Phase 5). `heuristic` needs no key and runs offline. `openai-compatible`
+  // targets any OpenAI-compatible endpoint (OpenAI, Groq, Gemini, OpenRouter…).
+  AI_PROVIDER: z.enum(['heuristic', 'openai-compatible']).default('heuristic'),
+  AI_BASE_URL: z.string().default('https://api.openai.com/v1'),
+  AI_API_KEY: z.string().optional(),
+  AI_MODEL: z.string().default('gpt-4o-mini'),
+  AI_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
+  // Back-compat aliases (Phase 1 naming).
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default('gpt-4o-mini'),
   JWT_SECRET: z.string().optional(),

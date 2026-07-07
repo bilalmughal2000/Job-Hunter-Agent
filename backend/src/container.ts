@@ -8,25 +8,95 @@ import {
   TextExtractionService,
   TxtTextExtractor,
 } from './agents/resume-application/extraction/index.js';
+import { HeuristicMatchingAgent, LlmMatchingAgent } from './agents/matching/index.js';
+import type { MatchingAgent } from './agents/matching/index.js';
+import { HeuristicJobAnalysisAgent, LlmJobAnalysisAgent } from './agents/job-analysis/index.js';
+import type { JobAnalysisAgent } from './agents/job-analysis/index.js';
+import { HeuristicResumeOptimizer, LlmResumeOptimizer } from './agents/resume-optimizer/index.js';
+import type { ResumeOptimizerAgent } from './agents/resume-optimizer/index.js';
+import { LlmCoverLetterAgent, TemplateCoverLetterAgent } from './agents/cover-letter/index.js';
+import type { CoverLetterAgent } from './agents/cover-letter/index.js';
+import { OpenAiCompatibleClient } from './ai/index.js';
 import { buildDefaultRegistry } from './providers/index.js';
 import {
   CompanyRepository,
+  CoverLetterRepository,
   JobRepository,
+  MatchResultRepository,
   ResumeRepository,
+  ResumeVersionRepository,
   SearchHistoryRepository,
 } from './repositories/index.js';
-import { JobService, LocalStorage, ResumeService, SearchService } from './services/index.js';
-import type { IJobService, IResumeService, ISearchService } from './services/index.js';
+import {
+  ApplicationDocsService,
+  JobAnalysisService,
+  JobService,
+  LocalStorage,
+  MatchingService,
+  ResumeService,
+  SearchService,
+} from './services/index.js';
+import type {
+  IApplicationDocsService,
+  IJobAnalysisService,
+  IJobService,
+  IMatchingService,
+  IResumeService,
+  ISearchService,
+} from './services/index.js';
 import { env } from './config/index.js';
 import { prisma } from './database/index.js';
 import { InMemoryCache } from './utils/cache.js';
 import { logger } from './utils/logger.js';
+
+interface AiAgents {
+  matching: MatchingAgent;
+  jobAnalysis: JobAnalysisAgent;
+  optimizer: ResumeOptimizerAgent;
+  coverLetter: CoverLetterAgent;
+}
+
+/**
+ * Selects AI agent implementations. With a configured OpenAI-compatible provider
+ * (OpenAI/Groq/Gemini/…) the LLM agents are used; otherwise the deterministic
+ * offline agents — so the app is fully functional with no API key.
+ */
+function buildAiAgents(): AiAgents {
+  if (env.AI_PROVIDER === 'openai-compatible' && env.AI_API_KEY) {
+    const client = new OpenAiCompatibleClient(
+      {
+        baseUrl: env.AI_BASE_URL,
+        apiKey: env.AI_API_KEY,
+        model: env.AI_MODEL,
+        timeoutMs: env.AI_TIMEOUT_MS,
+      },
+      logger,
+    );
+    logger.info({ backend: client.name }, 'AI agents: LLM backend');
+    return {
+      matching: new LlmMatchingAgent(client),
+      jobAnalysis: new LlmJobAnalysisAgent(client),
+      optimizer: new LlmResumeOptimizer(client),
+      coverLetter: new LlmCoverLetterAgent(client),
+    };
+  }
+  logger.info('AI agents: heuristic backend (no API key configured)');
+  return {
+    matching: new HeuristicMatchingAgent(),
+    jobAnalysis: new HeuristicJobAnalysisAgent(),
+    optimizer: new HeuristicResumeOptimizer(),
+    coverLetter: new TemplateCoverLetterAgent(),
+  };
+}
 
 /** The set of dependencies the HTTP layer needs. Injected into the app. */
 export interface AppContainer {
   jobService: IJobService;
   searchService: ISearchService;
   resumeService: IResumeService;
+  jobAnalysisService: IJobAnalysisService;
+  matchingService: IMatchingService;
+  applicationDocsService: IApplicationDocsService;
   /** Resolves a fallback user id until auth exists (Phase 6). */
   resolveDemoUserId: () => Promise<string>;
 }
@@ -64,6 +134,30 @@ export function buildContainer(): AppContainer {
     logger,
   );
 
+  // AI agents (Phase 5) — LLM or heuristic backend depending on config.
+  const agents = buildAiAgents();
+  const matchResultRepo = new MatchResultRepository(prisma);
+  const resumeVersionRepo = new ResumeVersionRepository(prisma);
+  const coverLetterRepo = new CoverLetterRepository(prisma);
+
+  const jobAnalysisService = new JobAnalysisService(agents.jobAnalysis, jobRepo);
+  const matchingService = new MatchingService(
+    agents.matching,
+    agents.jobAnalysis,
+    jobRepo,
+    resumeRepo,
+    matchResultRepo,
+  );
+  const applicationDocsService = new ApplicationDocsService(
+    agents.optimizer,
+    agents.coverLetter,
+    agents.jobAnalysis,
+    jobRepo,
+    resumeRepo,
+    resumeVersionRepo,
+    coverLetterRepo,
+  );
+
   const resolveDemoUserId = async (): Promise<string> => {
     const user = await prisma.user.findFirst({ orderBy: { createdAt: 'asc' } });
     if (!user) {
@@ -72,5 +166,13 @@ export function buildContainer(): AppContainer {
     return user.id;
   };
 
-  return { jobService, searchService, resumeService, resolveDemoUserId };
+  return {
+    jobService,
+    searchService,
+    resumeService,
+    jobAnalysisService,
+    matchingService,
+    applicationDocsService,
+    resolveDemoUserId,
+  };
 }

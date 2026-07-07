@@ -73,7 +73,7 @@ Every endpoint returns a typed envelope (`ApiResponse<T>` from `@ajh/shared`):
 | 2 ✅  | Prisma schema (incl. resume/application tables), migrations, seed   |
 | 3 ✅  | Search + Deduplication agents, pluggable source providers           |
 | 4 ✅  | Resume & Application agent: upload, parse/OCR, structured profile   |
-| 5     | AI agents: matching, resume optimizer, cover letter, analytics      |
+| 5 ✅  | AI agents: matching, resume optimizer, cover letter, job analysis   |
 | 6     | Application workflow state machine + approval gates + tracking APIs |
 | 7     | Angular dashboard: pages, filters, board, analytics viz             |
 | 8     | Notifications: Telegram + email                                     |

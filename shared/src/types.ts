@@ -222,7 +222,11 @@ export interface ResumeProfileDTO extends ExtractedProfile {
   extractedAt: string;
 }
 
-/** Structured output of the AI Matching Agent (Phase 5). */
+// ─────────────────────────────────────────────────────────────
+// AI Agents (Phase 5)
+// ─────────────────────────────────────────────────────────────
+
+/** Structured output of the AI Matching Agent. */
 export interface MatchResult {
   matchScore: number;
   explanation: string;
@@ -232,6 +236,65 @@ export interface MatchResult {
   experienceGap: string;
   recommendation: string;
   confidenceScore: number;
+}
+
+/** Structured summary of a job produced by the Job Analysis Agent. */
+export interface JobAnalysis {
+  summary: string;
+  requiredSkills: string[];
+  preferredSkills: string[];
+  responsibilities: string[];
+  benefits: string[];
+  salary?: string | null;
+}
+
+/**
+ * A customized, ATS-optimized resume produced by the Resume Optimizer Agent.
+ * Every field is derived from the candidate's real profile — nothing invented.
+ */
+export interface CustomizedResume {
+  summary: string;
+  /** Existing skills reordered so the most job-relevant appear first. */
+  highlightedSkills: string[];
+  experiences: {
+    company: string;
+    title: string;
+    bullets: string[];
+  }[];
+  /** ATS keywords the candidate legitimately possesses. */
+  keywords: string[];
+  /** Estimated ATS match, 0–100. */
+  atsScore: number;
+}
+
+export interface CoverLetterResult {
+  content: string;
+  tone: string;
+}
+
+/** DTO for a persisted customized resume version. */
+export interface ResumeVersionDTO {
+  id: string;
+  jobId: string;
+  baseResumeId: string;
+  label: string | null;
+  content: CustomizedResume;
+  atsScore: number | null;
+  version: number;
+  createdAt: string;
+}
+
+/** DTO for a persisted cover letter. */
+export interface CoverLetterDTO {
+  id: string;
+  jobId: string;
+  resumeVersionId: string;
+  content: string;
+  tone: string | null;
+  isEdited: boolean;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /** Generic, typed API envelope returned by every REST endpoint. */

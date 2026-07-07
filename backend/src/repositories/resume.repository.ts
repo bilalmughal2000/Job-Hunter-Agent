@@ -158,4 +158,12 @@ export class ResumeRepository implements IResumeRepository {
       include: PROFILE_INCLUDE,
     });
   }
+
+  async findLatestProfileForUser(userId: string): Promise<ResumeProfileWithChildren | null> {
+    return this.prisma.resumeProfile.findFirst({
+      where: { resume: { userId } },
+      orderBy: [{ resume: { isPrimary: 'desc' } }, { extractedAt: 'desc' }],
+      include: PROFILE_INCLUDE,
+    });
+  }
 }

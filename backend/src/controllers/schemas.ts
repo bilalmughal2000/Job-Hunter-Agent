@@ -50,3 +50,26 @@ export const jobIdParamSchema = z.object({
 export const resumeIdParamSchema = z.object({
   id: z.string().uuid('Invalid resume id'),
 });
+
+// ── AI agents (Phase 5) ──────────────────────────────────────
+export const matchBodySchema = z.object({
+  resumeId: z.string().uuid().optional(),
+});
+
+export const customizeBodySchema = z.object({
+  jobId: z.string().uuid('Invalid job id'),
+  resumeId: z.string().uuid().optional(),
+});
+
+export const jobIdInParamSchema = z.object({
+  jobId: z.string().uuid('Invalid job id'),
+});
+
+export const coverLetterBodySchema = z.object({
+  jobId: z.string().uuid('Invalid job id'),
+  resumeVersionId: z.string().uuid('Invalid resume version id'),
+});
+
+export const coverLetterUpdateSchema = z.object({
+  content: z.string().min(1, 'content is required'),
+});

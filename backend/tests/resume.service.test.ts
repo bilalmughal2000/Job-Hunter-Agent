@@ -57,6 +57,7 @@ function makeRepo() {
       profile: { id: 'p1' },
     }),
     findProfileByResumeId: vi.fn(),
+    findLatestProfileForUser: vi.fn(),
   };
   return { repo, statuses, getSaved: () => saved };
 }

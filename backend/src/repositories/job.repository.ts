@@ -1,4 +1,5 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
+import { JobSkillRequirement } from '@prisma/client';
 import { JobSortField, type JobFilter } from '@ajh/shared';
 import type { JobCreateData } from '../models/job.mapper.js';
 import { toPrismaRemote, toPrismaSource } from '../models/job.mapper.js';
@@ -22,6 +23,48 @@ export class JobRepository implements IJobRepository {
 
   async findById(id: string): Promise<JobWithCompany | null> {
     return this.prisma.job.findUnique({ where: { id }, include: { company: true } });
+  }
+
+  /** Persist a job's AI analysis: aiSummary + required/preferred JobSkills. */
+  async updateAnalysis(
+    jobId: string,
+    summary: string,
+    requiredSkills: string[],
+    preferredSkills: string[],
+  ): Promise<void> {
+    // Resolve/create the canonical Skill rows for every mentioned skill.
+    const names = [...new Set([...requiredSkills, ...preferredSkills])];
+    const skillIdByName = new Map<string, string>();
+    for (const name of names) {
+      const skill = await this.prisma.skill.upsert({
+        where: { name },
+        update: {},
+        create: { name },
+      });
+      skillIdByName.set(name.toLowerCase(), skill.id);
+    }
+
+    const requiredSet = new Set(requiredSkills.map((s) => s.toLowerCase()));
+    const links = names
+      .map((name) => ({
+        skillId: skillIdByName.get(name.toLowerCase())!,
+        requirement: requiredSet.has(name.toLowerCase())
+          ? JobSkillRequirement.REQUIRED
+          : JobSkillRequirement.PREFERRED,
+      }))
+      .filter((l) => l.skillId);
+
+    await this.prisma.$transaction([
+      this.prisma.job.update({
+        where: { id: jobId },
+        data: { aiSummary: summary, status: 'ANALYZED' },
+      }),
+      this.prisma.jobSkill.deleteMany({ where: { jobId } }),
+      this.prisma.jobSkill.createMany({
+        data: links.map((l) => ({ jobId, skillId: l.skillId, requirement: l.requirement })),
+        skipDuplicates: true,
+      }),
+    ]);
   }
 
   async findMany(filter: JobFilter): Promise<{ items: JobWithCompany[]; total: number }> {

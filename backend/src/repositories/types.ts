@@ -17,6 +17,12 @@ export interface IJobRepository {
   createManySkipDuplicates(data: JobCreateData[]): Promise<number>;
   findById(id: string): Promise<JobWithCompany | null>;
   findMany(filter: JobFilter): Promise<{ items: JobWithCompany[]; total: number }>;
+  updateAnalysis(
+    jobId: string,
+    summary: string,
+    requiredSkills: string[],
+    preferredSkills: string[],
+  ): Promise<void>;
 }
 
 export interface RecordSearchInput {
@@ -55,4 +61,6 @@ export interface IResumeRepository {
   saveProfile(resumeId: string, profile: ExtractedProfile, rawText: string): Promise<void>;
   findById(id: string): Promise<ResumeWithProfileFlag | null>;
   findProfileByResumeId(resumeId: string): Promise<ResumeProfileWithChildren | null>;
+  /** The user's primary (else most recent) resume profile, for matching/customization. */
+  findLatestProfileForUser(userId: string): Promise<ResumeProfileWithChildren | null>;
 }

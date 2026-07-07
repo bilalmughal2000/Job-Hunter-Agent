@@ -13,11 +13,26 @@ const rejectingJob: IJobService = {
 };
 const rejectingSearch: ISearchService = { run: () => Promise.reject(new Error('n/a')) };
 
+const unusedAi = {
+  jobAnalysisService: { analyze: () => Promise.reject(new Error('n/a')) },
+  matchingService: { match: () => Promise.reject(new Error('n/a')) },
+  applicationDocsService: {
+    customize: () => Promise.reject(new Error('n/a')),
+    listVersions: () => Promise.resolve([]),
+    generateCoverLetter: () => Promise.reject(new Error('n/a')),
+    editCoverLetter: () => Promise.reject(new Error('n/a')),
+  },
+} as unknown as Pick<
+  AppContainer,
+  'jobAnalysisService' | 'matchingService' | 'applicationDocsService'
+>;
+
 function appWith(resumeService: IResumeService) {
   const container: AppContainer = {
     jobService: rejectingJob,
     searchService: rejectingSearch,
     resumeService,
+    ...unusedAi,
     resolveDemoUserId: () => Promise.resolve('demo-user'),
   };
   return createApp(container);

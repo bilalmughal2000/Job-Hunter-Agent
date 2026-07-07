@@ -12,6 +12,20 @@ const stubResumeService: IResumeService = {
   getProfile: () => Promise.reject(new NotFoundError('not used')),
 };
 
+const unusedAi = {
+  jobAnalysisService: { analyze: () => Promise.reject(new Error('n/a')) },
+  matchingService: { match: () => Promise.reject(new Error('n/a')) },
+  applicationDocsService: {
+    customize: () => Promise.reject(new Error('n/a')),
+    listVersions: () => Promise.resolve([]),
+    generateCoverLetter: () => Promise.reject(new Error('n/a')),
+    editCoverLetter: () => Promise.reject(new Error('n/a')),
+  },
+} as unknown as Pick<
+  AppContainer,
+  'jobAnalysisService' | 'matchingService' | 'applicationDocsService'
+>;
+
 const emptyPage: Paginated<JobDTO> = { items: [], page: 1, pageSize: 20, total: 0 };
 
 function appWith(overrides: {
@@ -39,6 +53,7 @@ function appWith(overrides: {
       ...overrides.search,
     },
     resumeService: stubResumeService,
+    ...unusedAi,
     resolveDemoUserId: overrides.resolveDemoUserId ?? (() => Promise.resolve('demo-user')),
   };
   return createApp(container);

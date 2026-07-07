@@ -1,10 +1,14 @@
 import type {
+  CoverLetterDTO,
+  JobAnalysis,
   JobDTO,
   JobFilter,
+  MatchResult,
   NormalizedJob,
   Paginated,
   ResumeDTO,
   ResumeProfileDTO,
+  ResumeVersionDTO,
   SearchQuery,
   SearchRunSummary,
 } from '@ajh/shared';
@@ -32,4 +36,25 @@ export interface IResumeService {
   upload(input: UploadResumeInput): Promise<ResumeDTO>;
   getById(id: string): Promise<ResumeDTO>;
   getProfile(resumeId: string): Promise<ResumeProfileDTO>;
+}
+
+export interface IJobAnalysisService {
+  /** Summarize a job + persist required/preferred skills. */
+  analyze(jobId: string): Promise<JobAnalysis>;
+}
+
+export interface IMatchingService {
+  /** Score a job against the user's resume (given or primary) and persist the result. */
+  match(userId: string, jobId: string, resumeId?: string): Promise<MatchResult>;
+}
+
+export interface IApplicationDocsService {
+  customize(userId: string, jobId: string, resumeId?: string): Promise<ResumeVersionDTO>;
+  listVersions(jobId: string): Promise<ResumeVersionDTO[]>;
+  generateCoverLetter(
+    userId: string,
+    jobId: string,
+    resumeVersionId: string,
+  ): Promise<CoverLetterDTO>;
+  editCoverLetter(id: string, content: string): Promise<CoverLetterDTO>;
 }

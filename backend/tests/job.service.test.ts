@@ -38,6 +38,7 @@ function makeService(overrides: {
     },
     findById: () => Promise.resolve(null),
     findMany: () => Promise.resolve({ items: [], total: 0 }),
+    updateAnalysis: () => Promise.resolve(),
     ...overrides.jobRepo,
   };
   const companyRepo: ICompanyRepository = {
